@@ -2,7 +2,9 @@
 
 ## Intro
 
-Including diagrams...
+![An outline of the problem space](summary.png)
+
+For an introduction to the vertical interpolation problem space, please see the [INTRO.ipynb](INTRO.ipynb).
 
 ## Installation
 
