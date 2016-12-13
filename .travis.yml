@@ -20,13 +20,13 @@ install:
     - rm -rf ${CONDA_INSTALL_LOCN}/pkgs && ln -s ${HOME}/cache/pkgs ${CONDA_INSTALL_LOCN}/pkgs
 
     # Now do the things we need to do to install it.
-    - conda create -n test_env --file requirements.txt nose mock python=${PYTHON} ${EXTRA_DEPS} --yes --quiet
+    - conda create -n test_env --file requirements.txt nose python=${PYTHON} ${EXTRA_DEPS} --yes --quiet
     - source activate test_env
-    - python setup.py install
+    - python setup.py build_ext install
     - mkdir not_the_source_root && cd not_the_source_root
 
 script:
-    - nosetests stratify
+    - nosetests stratify 
 
 
 # We store the files that are downloaded from continuum.io, but not the environments that are created.

@@ -1,24 +1,23 @@
 from __future__ import absolute_import, division, print_function
 
-from distutils.core import setup
+from setuptools import setup, find_packages, Extension
 import os
 
 import numpy as np
-import setuptools
 
 from Cython.Build import cythonize
 
 
-extensions = [setuptools.Extension('stratify._vinterp',
-                                   ['stratify/_vinterp.pyx'],
-                                   include_dirs=[np.get_include()])]
+extensions = [Extension('stratify._vinterp',
+                        ['stratify/_vinterp.pyx'],
+                        include_dirs=[np.get_include()])]
 
 setup(
     name='stratify',
     description='Vectorized interpolators that are especially useful for Nd vertical interpolation/stratification of atmospheric and oceanographic datasets',
-    version='0.2.0',
+    version='0.3.0',
     ext_modules=cythonize(extensions),
-    packages=['stratify', 'stratify.tests'],
+    packages=find_packages(),
     classifiers=[
             'Development Status :: 3 - Alpha',
             ('License :: OSI Approved :: '
@@ -37,4 +36,7 @@ setup(
              'Topic :: Scientific/Engineering',
              'Topic :: Scientific/Engineering :: GIS',
     ],
+    extras_require={'test': ['nose'],
+                   },
+    zip_safe=False,
 )
