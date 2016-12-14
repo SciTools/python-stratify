@@ -5,3 +5,6 @@ build
 *.swp
 .ipynb_checkpoints
 *.pyc
+*.c
+
+dist/
