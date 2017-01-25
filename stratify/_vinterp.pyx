@@ -392,7 +392,6 @@ cdef class _PythonExtrapKernel(ExtrapKernel):
         with gil:
             self.extrap_kernel(direction, z_src, fz_src, level, fz_target)
 
-
 cdef class _TestableDirectionExtrapKernel(ExtrapKernel):
     @cython.boundscheck(False)
     @cython.wraparound(False)
