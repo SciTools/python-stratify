@@ -262,22 +262,20 @@ class Test_EXTRAPOLATE_LINEAR(unittest.TestCase):
 class Test_custom_extrap_kernel(unittest.TestCase):
     class my_kernel(vinterp._PythonExtrapKernel):
         def __init__(self, *args, **kwargs):
-            self.wibble = 'blah'
             super(Test_custom_extrap_kernel.my_kernel, self).__init__(*args, **kwargs)
 
-        def prepare_fn(self, *args):
-            print('called me!')
-            raise ValueError()
+        def extrap_kernel(self, direction, z_src, fz_src, level,
+                          output_array):
+            output_array[:] = -10
 
     def test(self):
         interpolation = vinterp._TestableIndexInterpKernel()
         extrapolation = Test_custom_extrap_kernel.my_kernel()
 
-        stratify.interpolate([1, 3.], [1, 2], [10, 20],
-                             interpolation=interpolation,
-                             extrapolation=extrapolation, rising=True)
-        print(extrapolation.wibble)
-
+        r = stratify.interpolate([1, 3.], [1, 2], [10, 20],
+                                 interpolation=interpolation,
+                                 extrapolation=extrapolation, rising=True)
+        assert_array_equal(r, [0, -10])
 
 
 class Test__Interpolator(unittest.TestCase):

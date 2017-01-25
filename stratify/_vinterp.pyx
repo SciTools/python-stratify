@@ -20,37 +20,6 @@ __all__ = ['interpolate',
            'EXTRAPOLATE_NAN', 'EXTRAPOLATE_NEAREST', 'EXTRAPOLATE_LINEAR']
 
 
-# interp_kernel defines the inner part of an interpolation operation.
-#
-# Parameters:
-# ----------
-# i (unsigned int) - the current (upper) index along z_src. 0 <= i < z_src.size[0]
-#           i will only ever be 0 if z_src[i] == current_level.   
-#           the interpolation value may lie on exactly i, but will never lie on exactly i-1. 
-# z_src (double array) - the 1d column of z_src values.
-# fz_src (2d double array) - the m 1d columns of fz_src values.
-#                        fz_src.shape[1] == z_src.shape[0].
-#                        fz_src.shape[0] may be 1 (common).
-# current_level (double) - the value that we are interpolating for
-# fz_target (double array) - the pre-allocated array to put the resulting
-#                            interpolated values into.
-ctypedef long (* interp_kernel)(unsigned int, double[:], double[:, :], double, double[:]) nogil except -1
-
-# extrap_kernel defines the inner part of an extrapolation operation.
-#
-# Parameters:
-# ----------
-# direction (int) - -1 for the bottom edge, +1 for the top edge
-# z_src (double array) - the 1d column of z_src values.
-# fz_src (2d double array) - the m 1d columns of fz_src values.
-#                        fz_src.shape[1] == z_src.shape[0].
-#                        fz_src.shape[0] may be 1 (common).
-# current_level (double) - the value that we are interpolating for
-# fz_target (double array) - the pre-allocated array to put the resulting
-#                            extrapolated values into.
-ctypedef long (* extrap_kernel)(int, double[:], double[:, :], double, double[:]) nogil except -1
-
-
 cdef inline int relative_sign(double z, double z_base) nogil:
     """
     Return the sign of z relative to z_base.
@@ -76,8 +45,8 @@ cdef inline int relative_sign(double z, double z_base) nogil:
 @cython.wraparound(False)
 cdef long gridwise_interpolation(double[:] z_target, double[:] z_src,
                                  double[:, :] fz_src, bint increasing,
-                                 InterpKernel interpolation_kernel,
-                                 ExtrapKernel extrapolation_kernel,
+                                 InterpKernel interpolation,
+                                 ExtrapKernel extrapolation,
                                  double [:, :] fz_target) nogil except -1:
     """
     Computes the interpolation of multiple levels of a single column.
@@ -88,8 +57,10 @@ cdef long gridwise_interpolation(double[:] z_target, double[:] z_src,
     z_src - the coordinate from which to find the levels.
     fz_src - the data to use for the actual interpolation
     increasing - true when increasing Z index generally implies increasing Z values
-    interpolation_kernel - the inner interpolation functionality. See the definition of
-                           interp_kernel.
+    interpolation - the inner interpolation functionality. See the definition of
+                    InterpKernel.
+    extrapolation - the inner extrapolation functionality. See the definition of
+                    ExtrapKernel.
     fz_target - the pre-allocated array to be used for the outputting the result
                 of interpolation.
 
@@ -131,8 +102,8 @@ cdef long gridwise_interpolation(double[:] z_target, double[:] z_src,
                     fz_target[i, i_target] = NAN
             return 0
 
-    interpolation_kernel.prepare_column(z_target, z_src, fz_src, increasing)
-    extrapolation_kernel.prepare_column(z_target, z_src, fz_src, increasing)
+    interpolation.prepare_column(z_target, z_src, fz_src, increasing)
+    extrapolation.prepare_column(z_target, z_src, fz_src, increasing)
 
     if increasing:
         z_before = -INFINITY
@@ -184,10 +155,10 @@ cdef long gridwise_interpolation(double[:] z_target, double[:] z_src,
                 break
 
         if extrapolating == 0 or sign_after == 0:
-            interpolation_kernel.kernel(i_src, z_src, fz_src, z_current,
+            interpolation.kernel(i_src, z_src, fz_src, z_current,
                                  fz_target[:, i_target])
         else:
-            extrapolation_kernel.kernel(extrapolating, z_src, fz_src, z_current,
+            extrapolation.kernel(extrapolating, z_src, fz_src, z_current,
                                  fz_target[:, i_target])
 
         # Move the lower edge of the window forwards to the level we've just computed,
@@ -195,164 +166,123 @@ cdef long gridwise_interpolation(double[:] z_target, double[:] z_src,
         z_before = z_current
 
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-cdef long linear_interp(unsigned int index, double[:] z_src, double[:, :] fz_src, double level,
-                 double[:] fz_target) nogil except -1:
-    """
-    Compute a linear interpolation.
-
-    The behaviour is as follows:
-        * if we've found a crossing and it is exactly on the level, use the
-          exact value from the original data (i.e. level == z_src[index])
-        * otherwise, compute the distance of the level from i and i-1, and
-          use these as proportions for linearly combining the fz_src values at
-          those indices.
-
-    """
-    cdef unsigned int m = fz_src.shape[0]
-    cdef double frac
-    cdef unsigned int i
-
-    if level == z_src[index]:
-        for i in range(m):
-            fz_target[i] = fz_src[i, index]
-    else:
-        frac = ((level - z_src[index - 1]) /
-                (z_src[index] - z_src[index - 1]))
-
-        for i in range(m):
-           fz_target[i] = fz_src[i, index - 1] + \
-                            frac * (fz_src[i, index] - fz_src[i, index - 1])
-
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-cdef long nearest_interp(unsigned int index, double[:] z_src, double[:, :] fz_src, double level,
-                 double[:] fz_target) nogil except -1:
-    """Compute a nearest-neighbour interpolation."""
-    cdef unsigned int m = fz_src.shape[0]
-    cdef unsigned int nearest_index, i
-
-    if index != 0 and fabs(level - z_src[index - 1]) <= fabs(level - z_src[index]):
-        nearest_index = index - 1
-    else:
-        nearest_index = index
-
-    for i in range(m):
-        fz_target[i] = fz_src[i, nearest_index]
-
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-cdef long _testable_indez_interp(unsigned int index, double[:] z_src, double[:, :] fz_src,
-                                 double level, double[:] fz_target) nogil except -1:
-    # A simple, tesable interpolation, which simply returns the index of interpolation.
-    cdef unsigned int m = fz_src.shape[0]
-    cdef unsigned int i
-
-    for i in range(m):
-        fz_target[i] = index
-
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-cdef long nearest_edge_extrap(int direction, double[:] z_src,
-                              double[:, :] fz_src, double level,
-                              double[:] fz_target) nogil except -1:
-    """Nearest-neighbour/edge extrapolation."""
-    cdef unsigned int m = fz_src.shape[0]
-    cdef unsigned int index, i
-
-    if direction < 0:
-        index = 0
-    else:
-        index = fz_src.shape[1] - 1
-
-    for i in range(m):
-        fz_target[i] = fz_src[i, index]
-
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-cdef long linear_extrap(int direction, double[:] z_src,
-                        double[:, :] fz_src, double level,
-                        double[:] fz_target) nogil except -1:
-    """Linear extrapolation using either the first or last 2 values."""
-    cdef unsigned int m = fz_src.shape[0]
-    cdef unsigned int n_src_pts = fz_src.shape[1]
-    cdef unsigned int p0, p1, i
-    cdef double frac
-
-    if direction < 0:
-        p0, p1 = 0, 1
-    else:
-        p0, p1 = n_src_pts - 2, n_src_pts - 1
-
-    frac = ((level - z_src[p0]) /
-            (z_src[p1] - z_src[p0]))
-
-    for i in range(m):
-       fz_target[i] = fz_src[i, p0] + frac * (fz_src[i, p1] - fz_src[i, p0])
-
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-cdef long nan_data_extrap(int direction, double[:] z_src,
-                              double[:, :] fz_src, double level,
-                              double[:] fz_target) nogil except -1:
-    """NaN values for extrapolation."""
-    cdef unsigned int m = fz_src.shape[0]
-    cdef unsigned int i
-
-    for i in range(m):
-        fz_target[i] = NAN
-
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-cdef long _testable_direction_extrap(int direction, double[:] z_src,
-                              double[:, :] fz_src, double level,
-                              double[:] fz_target) nogil except -1:
-    # A simple testable extrapolation which simply returns
-    # -inf if direction == -1 and inf if direction == 1.
-    cdef unsigned int m = fz_src.shape[0]
-    cdef double value
-    cdef unsigned int i
-
-    if direction < 0:
-        value = -INFINITY
-    else:
-        value = INFINITY
-    for i in range(m):
-        fz_target[i] = value
-
-
 cdef class InterpKernel(object):
-    cdef interp_kernel kernel
+    cdef long kernel(self, unsigned int index,
+                     double[:] z_src, double[:, :] fz_src,
+                     double level, double[:] fz_level
+                     ) nogil except -1:
+        """
+        The inner part of an interpolation operation.
+
+        Parameters:
+        ----------
+        i (unsigned int) - the current (upper) index along z_src. 0 <= i < z_src.size[0]
+                  i will only ever be 0 if z_src[i] == current_level.   
+                  the interpolation value may lie on exactly i, but will never lie on exactly i-1. 
+        z_src (double array) - the 1d column of z_src values.
+        fz_src (2d double array) - the m 1d columns of fz_src values.
+                               fz_src.shape[1] == z_src.shape[0].
+                               fz_src.shape[0] may be 1 (common).
+        current_level (double) - the value that we are interpolating for
+        fz_target (double array) - the pre-allocated array to put the resulting
+                                   interpolated values into.
+
+        """
+        with gil:
+            raise RuntimeError('InterpKernel subclasses should implement '
+                               'the kernel function.')
 
     cdef bint prepare_column(self, double[:] z_target, double[:] z_src,
                       double[:, :] fz_src, bint increasing) nogil except -1:
+        # Called before all levels are interpolated.
         pass
 
 
 cdef class _LinearInterpKernel(InterpKernel):
-    def __init__(self):
-        self.kernel = linear_interp
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef long kernel(self, unsigned int index, double[:] z_src, double[:, :] fz_src, double level,
+                     double[:] fz_target) nogil except -1:
+        """
+        Compute a linear interpolation.
+
+        The behaviour is as follows:
+            * if we've found a crossing and it is exactly on the level, use the
+              exact value from the original data (i.e. level == z_src[index])
+            * otherwise, compute the distance of the level from i and i-1, and
+              use these as proportions for linearly combining the fz_src values at
+              those indices.
+
+        """
+        cdef unsigned int m = fz_src.shape[0]
+        cdef double frac
+        cdef unsigned int i
+
+        if level == z_src[index]:
+            for i in range(m):
+                fz_target[i] = fz_src[i, index]
+        else:
+            frac = ((level - z_src[index - 1]) /
+                    (z_src[index] - z_src[index - 1]))
+
+            for i in range(m):
+               fz_target[i] = fz_src[i, index - 1] + \
+                                frac * (fz_src[i, index] - fz_src[i, index - 1])
 
 
 cdef class _NearestInterpKernel(InterpKernel):
-    def __init__(self):
-        self.kernel = nearest_interp
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef long kernel(self, unsigned int index, double[:] z_src, double[:, :] fz_src, double level,
+                     double[:] fz_target) nogil except -1:
+        """Compute a nearest-neighbour interpolation."""
+        cdef unsigned int m = fz_src.shape[0]
+        cdef unsigned int nearest_index, i
+
+        if index != 0 and fabs(level - z_src[index - 1]) <= fabs(level - z_src[index]):
+            nearest_index = index - 1
+        else:
+            nearest_index = index
+
+        for i in range(m):
+            fz_target[i] = fz_src[i, nearest_index]
 
 
 cdef class _TestableIndexInterpKernel(InterpKernel):
-    def __init__(self):
-        self.kernel = _testable_indez_interp
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef long kernel(self, unsigned int index, double[:] z_src, double[:, :] fz_src,
+                                     double level, double[:] fz_target) nogil except -1:
+        # A simple, tesable interpolation, which simply returns the index of interpolation.
+        cdef unsigned int m = fz_src.shape[0]
+        cdef unsigned int i
+
+        for i in range(m):
+            fz_target[i] = index
 
 
 cdef class ExtrapKernel(object):
-    cdef extrap_kernel kernel
+    cdef long kernel(self, int direction, 
+                     double[:] z_src, double[:, :] fz_src,
+                     double current_level, double[:] fz_target
+                    ) nogil except -1:
+        """
+        Defines the inner part of an extrapolation operation.
+        
+        Parameters:
+        ----------
+        direction (int) - -1 for the bottom edge, +1 for the top edge
+        z_src (double array) - the 1d column of z_src values.
+        fz_src (2d double array) - the m 1d columns of fz_src values.
+                               fz_src.shape[1] == z_src.shape[0].
+                               fz_src.shape[0] may be 1 (common).
+        current_level (double) - the value that we are interpolating for
+        fz_target (double array) - the pre-allocated array to put the resulting
+                                   extrapolated values into.
+        """
+        with gil:
+            raise RuntimeError('InterpKernel subclasses should implement '
+                               'the kernel function.')
 
     cdef bint prepare_column(self, double[:] z_target, double[:] z_src,
                       double[:, :] fz_src, bint increasing) nogil except -1:
@@ -360,19 +290,40 @@ cdef class ExtrapKernel(object):
 
 
 cdef class _NanExtrapKernel(ExtrapKernel):
-    def __init__(self):
-        self.kernel = nan_data_extrap
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef long kernel(self, int direction, double[:] z_src,
+                     double[:, :] fz_src, double level,
+                     double[:] fz_target) nogil except -1:
+        """NaN values for extrapolation."""
+        cdef unsigned int m = fz_src.shape[0]
+        cdef unsigned int i
+
+        for i in range(m):
+            fz_target[i] = NAN
 
 
 cdef class _NearestExtrapKernel(ExtrapKernel):
-    def __init__(self):
-        self.kernel = nearest_edge_extrap
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef long kernel(self,
+                                  int direction, double[:] z_src,
+                                  double[:, :] fz_src, double level,
+                                  double[:] fz_target) nogil except -1:
+        """Nearest-neighbour/edge extrapolation."""
+        cdef unsigned int m = fz_src.shape[0]
+        cdef unsigned int index, i
+
+        if direction < 0:
+            index = 0
+        else:
+            index = fz_src.shape[1] - 1
+
+        for i in range(m):
+            fz_target[i] = fz_src[i, index]
 
 
 cdef class _LinearExtrapKernel(ExtrapKernel):
-    def __init__(self):
-        self.kernel = linear_extrap
-
     cdef bint prepare_column(self, double[:] z_target, double[:] z_src,
                       double[:, :] fz_src, bint increasing) nogil except -1:
         cdef unsigned int n_src_pts = z_src.shape[0]
@@ -382,12 +333,33 @@ cdef class _LinearExtrapKernel(ExtrapKernel):
                 raise ValueError('Linear extrapolation requires at least '
                                  '2 source points. Got {}.'.format(n_src_pts))
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef long kernel(self, int direction, double[:] z_src,
+                     double[:, :] fz_src, double level,
+                     double[:] fz_target) nogil except -1:
+        """Linear extrapolation using either the first or last 2 values."""
+        cdef unsigned int m = fz_src.shape[0]
+        cdef unsigned int n_src_pts = fz_src.shape[1]
+        cdef unsigned int p0, p1, i
+        cdef double frac
+
+        if direction < 0:
+            p0, p1 = 0, 1
+        else:
+            p0, p1 = n_src_pts - 2, n_src_pts - 1
+
+        frac = ((level - z_src[p0]) /
+                (z_src[p1] - z_src[p0]))
+
+        for i in range(m):
+           fz_target[i] = fz_src[i, p0] + frac * (fz_src[i, p1] - fz_src[i, p0])
+
 
 cdef class _PythonExtrapKernel(ExtrapKernel):
     cdef bint use_column_prep
 
     def __init__(self, use_column_prep=True):
-        self.kernel = linear_extrap
         self.use_column_prep = use_column_prep
 
     def column_prep(self, z_target, z_src, fz_src, increasing):
@@ -407,10 +379,39 @@ cdef class _PythonExtrapKernel(ExtrapKernel):
             with gil:
                 self.column_prep(z_target, z_src, fz_src, increasing)
 
+    def extrap_kernel(self, direction, z_src, fz_src, level, output_array):
+        # Fill the output array with nans.
+        output_array[:] = np.nan
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef long kernel(self,
+                     int direction, double[:] z_src,
+                     double[:, :] fz_src, double level,
+                     double[:] fz_target) nogil except -1:
+        with gil:
+            self.extrap_kernel(direction, z_src, fz_src, level, fz_target)
+
 
 cdef class _TestableDirectionExtrapKernel(ExtrapKernel):
-    def __init__(self):
-        self.kernel = _testable_direction_extrap
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef long kernel(self,
+                     int direction, double[:] z_src,
+                     double[:, :] fz_src, double level,
+                     double[:] fz_target) nogil except -1:
+        # A simple testable extrapolation which simply returns
+        # -inf if direction == -1 and inf if direction == 1.
+        cdef unsigned int m = fz_src.shape[0]
+        cdef double value
+        cdef unsigned int i
+
+        if direction < 0:
+            value = -INFINITY
+        else:
+            value = INFINITY
+        for i in range(m):
+            fz_target[i] = value
 
 
 # Construct interp/extrap constants exposed to the user.
