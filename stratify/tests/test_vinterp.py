@@ -9,14 +9,25 @@ import stratify
 import stratify._vinterp as vinterp
 
 
+class IndexInterpolator(vinterp.PyFuncInterpolator):
+    def interp_kernel(self, index, z_src, fz_src, level, output_array):
+        output_array[:] = index
+
+
+class DirectionExtrapolator(vinterp.PyFuncExtrapolator):
+    def extrap_kernel(self, direction, z_src, fz_src,
+                      level, output_array):
+        output_array[:] = np.inf if direction > 0 else -np.inf
+
+
 class TestColumnInterpolation(unittest.TestCase):
     def interpolate(self, x_target, x_src, rising=None):
         x_target = np.array(x_target)
         x_src = np.array(x_src)
         fx_src = np.empty(x_src.shape)
 
-        index_interp = vinterp._TestableIndexInterpKernel()
-        extrap_direct = vinterp._TestableDirectionExtrapKernel()
+        index_interp = IndexInterpolator()
+        extrap_direct = DirectionExtrapolator()
 
         r1 = stratify.interpolate(x_target, x_src, fx_src,
                                   rising=rising,
@@ -123,7 +134,7 @@ class TestColumnInterpolation(unittest.TestCase):
 class Test_INTERPOLATE_LINEAR(unittest.TestCase):
     def interpolate(self, x_target):
         interpolation = stratify.INTERPOLATE_LINEAR
-        extrapolation = vinterp._TestableDirectionExtrapKernel()
+        extrapolation = DirectionExtrapolator()
 
         x_src = np.arange(5)
         fx_src = 10 * x_src
@@ -150,7 +161,7 @@ class Test_INTERPOLATE_LINEAR(unittest.TestCase):
         # level triggers a shortcut that avoids the expectation of >=2 source
         # points.
         interpolation = stratify.INTERPOLATE_LINEAR
-        extrapolation = vinterp._TestableDirectionExtrapKernel()
+        extrapolation = DirectionExtrapolator()
 
         r = stratify.interpolate([2], [2], [20],
                                  interpolation=interpolation,
@@ -162,7 +173,7 @@ class Test_INTERPOLATE_LINEAR(unittest.TestCase):
 class Test_INTERPOLATE_NEAREST(unittest.TestCase):
     def interpolate(self, x_target):
         interpolation = stratify.INTERPOLATE_NEAREST
-        extrapolation = vinterp._TestableDirectionExtrapKernel()
+        extrapolation = DirectionExtrapolator()
 
         x_src = np.arange(5)
         fx_src = 10 * x_src
@@ -188,7 +199,7 @@ class Test_INTERPOLATE_NEAREST(unittest.TestCase):
 
 class Test_EXTRAPOLATE_NAN(unittest.TestCase):
     def interpolate(self, x_target):
-        interpolation = vinterp._TestableIndexInterpKernel()
+        interpolation = IndexInterpolator()
         extrapolation = stratify.EXTRAPOLATE_NAN
 
         x_src = np.arange(5)
@@ -208,7 +219,7 @@ class Test_EXTRAPOLATE_NAN(unittest.TestCase):
 
 class Test_EXTRAPOLATE_NEAREST(unittest.TestCase):
     def interpolate(self, x_target):
-        interpolation = vinterp._TestableIndexInterpKernel()
+        interpolation = IndexInterpolator()
         extrapolation = stratify.EXTRAPOLATE_NEAREST
 
         x_src = np.arange(5)
@@ -228,7 +239,7 @@ class Test_EXTRAPOLATE_NEAREST(unittest.TestCase):
 
 class Test_EXTRAPOLATE_LINEAR(unittest.TestCase):
     def interpolate(self, x_target):
-        interpolation = vinterp._TestableIndexInterpKernel()
+        interpolation = IndexInterpolator()
         extrapolation = stratify.EXTRAPOLATE_LINEAR
 
         x_src = np.arange(5)
@@ -248,7 +259,7 @@ class Test_EXTRAPOLATE_LINEAR(unittest.TestCase):
         assert_array_almost_equal(self.interpolate([15.123]), [151.23])
 
     def test_npts(self):
-        interpolation = vinterp._TestableIndexInterpKernel()
+        interpolation = IndexInterpolator()
         extrapolation = stratify.EXTRAPOLATE_LINEAR
 
         msg = (r'Linear extrapolation requires at least 2 '
@@ -260,7 +271,7 @@ class Test_EXTRAPOLATE_LINEAR(unittest.TestCase):
 
 
 class Test_custom_extrap_kernel(unittest.TestCase):
-    class my_kernel(vinterp._PythonExtrapKernel):
+    class my_kernel(vinterp.PyFuncExtrapolator):
         def __init__(self, *args, **kwargs):
             super(Test_custom_extrap_kernel.my_kernel, self).__init__(*args, **kwargs)
 
@@ -269,7 +280,7 @@ class Test_custom_extrap_kernel(unittest.TestCase):
             output_array[:] = -10
 
     def test(self):
-        interpolation = vinterp._TestableIndexInterpKernel()
+        interpolation = IndexInterpolator()
         extrapolation = Test_custom_extrap_kernel.my_kernel()
 
         r = stratify.interpolate([1, 3.], [1, 2], [10, 20],
@@ -278,11 +289,11 @@ class Test_custom_extrap_kernel(unittest.TestCase):
         assert_array_equal(r, [0, -10])
 
 
-class Test__Interpolator(unittest.TestCase):
+class Test_Interpolation(unittest.TestCase):
     def test_axis_m1(self):
         data = np.empty([5, 4, 23, 7, 3])
         zdata = np.empty([5, 4, 23, 7, 3])
-        i = vinterp._Interpolator([1, 3], zdata, data)
+        i = vinterp._Interpolation([1, 3], zdata, data)
         # 1288 == 5 * 4 * 23 * 7
         self.assertEqual(i._result_working_shape, (1, 3220, 2, 1))
         self.assertEqual(i.result_shape, (5, 4, 23, 7, 2))
@@ -295,7 +306,7 @@ class Test__Interpolator(unittest.TestCase):
 
     def test_axis_0(self):
         data = zdata = np.empty([5, 4, 23, 7, 3])
-        i = vinterp._Interpolator([1, 3], data, zdata, axis=0)
+        i = vinterp._Interpolation([1, 3], data, zdata, axis=0)
         # 1932 == 4 * 23 * 7 *3
         self.assertEqual(i._result_working_shape, (1, 1, 2, 1932))
         self.assertEqual(i.result_shape, (2, 4, 23, 7, 3))
@@ -303,7 +314,7 @@ class Test__Interpolator(unittest.TestCase):
 
     def test_axis_2(self):
         data = zdata = np.empty([5, 4, 23, 7, 3])
-        i = vinterp._Interpolator([1, 3], data, zdata, axis=2)
+        i = vinterp._Interpolation([1, 3], data, zdata, axis=2)
         # 1932 == 4 * 23 * 7 *3
         self.assertEqual(i._result_working_shape, (1, 20, 2, 21))
         self.assertEqual(i.result_shape, (5, 4, 2, 7, 3))
@@ -313,16 +324,16 @@ class Test__Interpolator(unittest.TestCase):
         data = np.empty([5, 4, 23, 7, 3])
         zdata = np.empty([5, 4, 3, 7, 3])
         with self.assertRaises(ValueError):
-            vinterp._Interpolator([1, 3], data, zdata, axis=2)
+            vinterp._Interpolation([1, 3], data, zdata, axis=2)
 
     def test_axis_out_of_bounds(self):
         data = np.empty([5, 4])
         zdata = np.empty([5, 4])
         with self.assertRaises(ValueError):
-            vinterp._Interpolator([1, 3], data, zdata, axis=4)
+            vinterp._Interpolation([1, 3], data, zdata, axis=4)
 
     def test_result_dtype_f4(self):
-        interp = vinterp._Interpolator([17.5], np.arange(4) * 10,
+        interp = vinterp._Interpolation([17.5], np.arange(4) * 10,
                                        np.arange(4, dtype='f4'))
         result = interp.interpolate()
 
@@ -330,7 +341,7 @@ class Test__Interpolator(unittest.TestCase):
         self.assertEqual(result.dtype, np.dtype('f4'))
 
     def test_result_dtype_f8(self):
-        interp = vinterp._Interpolator([17.5], np.arange(4) * 10,
+        interp = vinterp._Interpolation([17.5], np.arange(4) * 10,
                                        np.arange(4, dtype='f8'))
         result = interp.interpolate()
 
@@ -338,19 +349,27 @@ class Test__Interpolator(unittest.TestCase):
         self.assertEqual(result.dtype, np.dtype('f8'))
 
 
-class Test__Interpolator_interpolate_z_target_nd(unittest.TestCase):
+class Test__Interpolation_interpolate_z_target_nd(unittest.TestCase):
     def test_target_z_3d_axis_0(self):
         z_target = z_source = f_source = np.arange(3) * np.ones([4, 2, 3])
-        interp = vinterp._Interpolator(z_target, z_source, f_source,
+        interp = vinterp._Interpolation(z_target, z_source, f_source,
                        axis=0, extrapolation=stratify.EXTRAPOLATE_NEAREST)
         result = interp.interpolate_z_target_nd()
         assert_array_equal(result, f_source)
 
     def test_target_z_3d_axis_m1(self):
         z_target = z_source = f_source = np.arange(3) * np.ones([4, 2, 3])
-        interp = vinterp._Interpolator(z_target, z_source, f_source,
+        interp = vinterp._Interpolation(z_target, z_source, f_source,
                        axis=-1, extrapolation=stratify.EXTRAPOLATE_NEAREST)
         result = interp.interpolate_z_target_nd()
+        assert_array_equal(result, f_source)
+
+
+class Test_interpolate(unittest.TestCase):
+    def test_target_z_3d_axis_0(self):
+        z_target = z_source = f_source = np.arange(3) * np.ones([4, 2, 3])
+        result= vinterp.interpolate(z_target, z_source, f_source,
+                                    axis=0, extrapolation='linear')
         assert_array_equal(result, f_source)
 
 
