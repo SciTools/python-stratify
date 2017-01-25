@@ -145,6 +145,19 @@ class Test_INTERPOLATE_LINEAR(unittest.TestCase):
         assert_array_almost_equal(self.interpolate([1.123456789]),
                                   [11.23456789], decimal=6)
 
+    def test_single_point(self):
+        # Test that a single input point that falls exactly on the target
+        # level triggers a shortcut that avoids the expectation of >=2 source
+        # points.
+        interpolation = stratify.INTERPOLATE_LINEAR
+        extrapolation = vinterp._TestableDirectionExtrapKernel()
+
+        r = stratify.interpolate([2], [2], [20],
+                                 interpolation=interpolation,
+                                 extrapolation=extrapolation,
+                                 rising=True)
+        self.assertEqual(r, 20) 
+
 
 class Test_INTERPOLATE_NEAREST(unittest.TestCase):
     def interpolate(self, x_target):
@@ -156,8 +169,8 @@ class Test_INTERPOLATE_NEAREST(unittest.TestCase):
 
         # Use -2 to test negative number support.
         return stratify.interpolate(np.array(x_target) - 2, x_src - 2, fx_src,
-                                   interpolation=interpolation,
-                                   extrapolation=extrapolation)
+                                    interpolation=interpolation,
+                                    extrapolation=extrapolation)
 
     def test_on_the_mark(self):
         assert_array_equal(self.interpolate([0, 1, 2, 3, 4]),
@@ -183,8 +196,8 @@ class Test_EXTRAPOLATE_NAN(unittest.TestCase):
 
         # Use -2 to test negative number support.
         return stratify.interpolate(np.array(x_target) - 2, x_src - 2, fx_src,
-                                   interpolation=interpolation,
-                                   extrapolation=extrapolation)
+                                    interpolation=interpolation,
+                                    extrapolation=extrapolation)
 
     def test_below(self):
         assert_array_equal(self.interpolate([-1]), [np.nan])
@@ -203,8 +216,8 @@ class Test_EXTRAPOLATE_NEAREST(unittest.TestCase):
 
         # Use -2 to test negative number support.
         return stratify.interpolate(np.array(x_target) - 2, x_src - 2, fx_src,
-                                   interpolation=interpolation,
-                                   extrapolation=extrapolation)
+                                    interpolation=interpolation,
+                                    extrapolation=extrapolation)
 
     def test_below(self):
         assert_array_equal(self.interpolate([-1]), [0.])
@@ -225,14 +238,26 @@ class Test_EXTRAPOLATE_LINEAR(unittest.TestCase):
 
         # Use -2 to test negative number support.
         return stratify.interpolate(np.array(x_target) - 2, x_src - 2, fx_src,
-                                   interpolation=interpolation,
-                                   extrapolation=extrapolation)
+                                    interpolation=interpolation,
+                                    extrapolation=extrapolation)
 
     def test_below(self):
         assert_array_equal(self.interpolate([-1]), [-10.])
 
     def test_above(self):
         assert_array_almost_equal(self.interpolate([15.123]), [151.23])
+
+    def test_npts(self):
+        interpolation = vinterp._TestableIndexInterpKernel()
+        extrapolation = stratify.EXTRAPOLATE_LINEAR
+
+        msg = (r'Linear extrapolation requires at least 2 '
+               r'source points. Got 1.')
+
+        with self.assertRaisesRegexp(ValueError, msg):
+            stratify.interpolate([1, 3.], [2], [20],
+                                 interpolation=interpolation,
+                                 extrapolation=extrapolation, rising=True)
 
 
 class Test__Interpolator(unittest.TestCase):

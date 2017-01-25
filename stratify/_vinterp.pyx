@@ -277,13 +277,19 @@ cdef long linear_extrap(int direction, double[:] z_src,
                         double[:] fz_target) nogil except -1:
     """Linear extrapolation using either the first or last 2 values."""
     cdef unsigned int m = fz_src.shape[0]
+    cdef unsigned int n_src_pts = fz_src.shape[1]
     cdef unsigned int p0, p1, i
     cdef double frac
+
+    if n_src_pts < 2:
+        with gil:
+            raise ValueError('Linear extrapolation requires at least '
+                             '2 source points. Got {}.'.format(n_src_pts))
 
     if direction < 0:
         p0, p1 = 0, 1
     else:
-        p0, p1 = fz_src.shape[1] - 2, fz_src.shape[1] - 1
+        p0, p1 = n_src_pts - 2, n_src_pts - 1
 
     frac = ((level - z_src[p0]) /
             (z_src[p1] - z_src[p0]))
