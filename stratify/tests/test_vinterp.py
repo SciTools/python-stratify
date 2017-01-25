@@ -253,11 +253,31 @@ class Test_EXTRAPOLATE_LINEAR(unittest.TestCase):
 
         msg = (r'Linear extrapolation requires at least 2 '
                r'source points. Got 1.')
-
         with self.assertRaisesRegexp(ValueError, msg):
             stratify.interpolate([1, 3.], [2], [20],
                                  interpolation=interpolation,
                                  extrapolation=extrapolation, rising=True)
+
+
+class Test_custom_extrap_kernel(unittest.TestCase):
+    class my_kernel(vinterp._PythonExtrapKernel):
+        def __init__(self, *args, **kwargs):
+            self.wibble = 'blah'
+            super(Test_custom_extrap_kernel.my_kernel, self).__init__(*args, **kwargs)
+
+        def prepare_fn(self, *args):
+            print('called me!')
+            raise ValueError()
+
+    def test(self):
+        interpolation = vinterp._TestableIndexInterpKernel()
+        extrapolation = Test_custom_extrap_kernel.my_kernel()
+
+        stratify.interpolate([1, 3.], [1, 2], [10, 20],
+                             interpolation=interpolation,
+                             extrapolation=extrapolation, rising=True)
+        print(extrapolation.wibble)
+
 
 
 class Test__Interpolator(unittest.TestCase):

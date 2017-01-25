@@ -76,8 +76,8 @@ cdef inline int relative_sign(double z, double z_base) nogil:
 @cython.wraparound(False)
 cdef long gridwise_interpolation(double[:] z_target, double[:] z_src,
                                  double[:, :] fz_src, bint increasing,
-                                 interp_kernel interpolation_kernel,
-                                 extrap_kernel extrapolation_kernel,
+                                 InterpKernel interpolation_kernel,
+                                 ExtrapKernel extrapolation_kernel,
                                  double [:, :] fz_target) nogil except -1:
     """
     Computes the interpolation of multiple levels of a single column.
@@ -131,6 +131,9 @@ cdef long gridwise_interpolation(double[:] z_target, double[:] z_src,
                     fz_target[i, i_target] = NAN
             return 0
 
+    interpolation_kernel.prepare_column(z_target, z_src, fz_src, increasing)
+    extrapolation_kernel.prepare_column(z_target, z_src, fz_src, increasing)
+
     if increasing:
         z_before = -INFINITY
     else:
@@ -181,10 +184,10 @@ cdef long gridwise_interpolation(double[:] z_target, double[:] z_src,
                 break
 
         if extrapolating == 0 or sign_after == 0:
-            interpolation_kernel(i_src, z_src, fz_src, z_current,
+            interpolation_kernel.kernel(i_src, z_src, fz_src, z_current,
                                  fz_target[:, i_target])
         else:
-            extrapolation_kernel(extrapolating, z_src, fz_src, z_current,
+            extrapolation_kernel.kernel(extrapolating, z_src, fz_src, z_current,
                                  fz_target[:, i_target])
 
         # Move the lower edge of the window forwards to the level we've just computed,
@@ -281,11 +284,6 @@ cdef long linear_extrap(int direction, double[:] z_src,
     cdef unsigned int p0, p1, i
     cdef double frac
 
-    if n_src_pts < 2:
-        with gil:
-            raise ValueError('Linear extrapolation requires at least '
-                             '2 source points. Got {}.'.format(n_src_pts))
-
     if direction < 0:
         p0, p1 = 0, 1
     else:
@@ -333,6 +331,10 @@ cdef long _testable_direction_extrap(int direction, double[:] z_src,
 cdef class InterpKernel(object):
     cdef interp_kernel kernel
 
+    cdef bint prepare_column(self, double[:] z_target, double[:] z_src,
+                      double[:, :] fz_src, bint increasing) nogil except -1:
+        pass
+
 
 cdef class _LinearInterpKernel(InterpKernel):
     def __init__(self):
@@ -352,6 +354,10 @@ cdef class _TestableIndexInterpKernel(InterpKernel):
 cdef class ExtrapKernel(object):
     cdef extrap_kernel kernel
 
+    cdef bint prepare_column(self, double[:] z_target, double[:] z_src,
+                      double[:, :] fz_src, bint increasing) nogil except -1:
+        pass
+
 
 cdef class _NanExtrapKernel(ExtrapKernel):
     def __init__(self):
@@ -366,6 +372,40 @@ cdef class _NearestExtrapKernel(ExtrapKernel):
 cdef class _LinearExtrapKernel(ExtrapKernel):
     def __init__(self):
         self.kernel = linear_extrap
+
+    cdef bint prepare_column(self, double[:] z_target, double[:] z_src,
+                      double[:, :] fz_src, bint increasing) nogil except -1:
+        cdef unsigned int n_src_pts = z_src.shape[0]
+
+        if n_src_pts < 2:
+            with gil:
+                raise ValueError('Linear extrapolation requires at least '
+                                 '2 source points. Got {}.'.format(n_src_pts))
+
+
+cdef class _PythonExtrapKernel(ExtrapKernel):
+    cdef bint use_column_prep
+
+    def __init__(self, use_column_prep=True):
+        self.kernel = linear_extrap
+        self.use_column_prep = use_column_prep
+
+    def column_prep(self, z_target, z_src, fz_src, increasing):
+        """
+        Called each time this extrapolator sees a new data array.
+        This method may be used for validation of a column, or for column
+        based pre-interpolation calculations (e.g. spline gradients).
+
+        Note: This method is not called if :attr:`.call_column_prep` is False.
+
+        """
+        pass
+
+    cdef bint prepare_column(self, double[:] z_target, double[:] z_src,
+                      double[:, :] fz_src, bint increasing) nogil except -1:
+        if self.use_column_prep:
+            with gil:
+                self.column_prep(z_target, z_src, fz_src, increasing)
 
 
 cdef class _TestableDirectionExtrapKernel(ExtrapKernel):
@@ -449,8 +489,8 @@ cdef class _Interpolator(object):
     understanding.
 
    """
-    cdef interp_kernel interpolation
-    cdef extrap_kernel extrapolation
+    cdef InterpKernel interpolation
+    cdef ExtrapKernel extrapolation
 
     cdef public np.dtype _target_dtype
     cdef int rising
@@ -546,8 +586,17 @@ cdef class _Interpolator(object):
 
         self.rising = bool(rising)
 
-        self.interpolation = interpolation.kernel
-        self.extrapolation = extrapolation.kernel
+        # Sometimes we want to add additional constraints on our interpolation
+        # and extrapolation - for example, linear extrapolation requires there
+        # to be two coordinates to interpolate from.
+        if hasattr(self.interpolation, 'validate_data'):
+            self.interpolation.validate_data(self)
+
+        if hasattr(self.extrapolation, 'validate_data'):
+            self.extrapolation.validate_data(self)
+
+        self.interpolation = interpolation
+        self.extrapolation = extrapolation
 
     def interpolate(self):
         # Construct the output array for the interpolation to fill in.
