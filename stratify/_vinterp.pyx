@@ -17,7 +17,7 @@ cdef extern from "math.h" nogil:
 
 __all__ = ['interpolate',
            'INTERPOLATE_LINEAR', 'INTERPOLATE_NEAREST',
-           'EXTRAPOLATE_NAN', 'EXTRAPOLATE_NEAREST']
+           'EXTRAPOLATE_NAN', 'EXTRAPOLATE_NEAREST', 'EXTRAPOLATE_LINEAR']
 
 
 # interp_kernel defines the inner part of an interpolation operation.
@@ -272,6 +272,34 @@ cdef long nearest_edge_extrap(int direction, double[:] z_src,
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+cdef long linear_extrap(int direction, double[:] z_src,
+                        double[:, :] fz_src, double level,
+                        double[:] fz_target) nogil except -1:
+    """Linear extrapolation using either the first or last 2 values."""
+    cdef unsigned int m = fz_src.shape[0]
+    cdef unsigned int n_src_pts = fz_src.shape[1]
+    cdef unsigned int p0, p1, i
+    cdef double frac
+
+    if n_src_pts < 2:
+        with gil:
+            raise ValueError('Linear extrapolation requires at least '
+                             '2 source points. Got {}.'.format(n_src_pts))
+
+    if direction < 0:
+        p0, p1 = 0, 1
+    else:
+        p0, p1 = n_src_pts - 2, n_src_pts - 1
+
+    frac = ((level - z_src[p0]) /
+            (z_src[p1] - z_src[p0]))
+
+    for i in range(m):
+       fz_target[i] = fz_src[i, p0] + frac * (fz_src[i, p1] - fz_src[i, p0])
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
 cdef long nan_data_extrap(int direction, double[:] z_src,
                               double[:, :] fz_src, double level,
                               double[:] fz_target) nogil except -1:
@@ -335,6 +363,11 @@ cdef class _NearestExtrapKernel(ExtrapKernel):
         self.kernel = nearest_edge_extrap
 
 
+cdef class _LinearExtrapKernel(ExtrapKernel):
+    def __init__(self):
+        self.kernel = linear_extrap
+
+
 cdef class _TestableDirectionExtrapKernel(ExtrapKernel):
     def __init__(self):
         self.kernel = _testable_direction_extrap
@@ -345,9 +378,10 @@ INTERPOLATE_LINEAR = _LinearInterpKernel()
 INTERPOLATE_NEAREST = _NearestInterpKernel()
 EXTRAPOLATE_NAN = _NanExtrapKernel()
 EXTRAPOLATE_NEAREST = _NearestExtrapKernel()
+EXTRAPOLATE_LINEAR = _LinearExtrapKernel()
 
 
-def interpolate(z_target, z_src, fz_src, axis=-1, rising=True,
+def interpolate(z_target, z_src, fz_src, axis=-1, rising=None,
                 interpolation=INTERPOLATE_LINEAR,
                 extrapolation=EXTRAPOLATE_NAN):
     """
@@ -382,12 +416,16 @@ def interpolate(z_target, z_src, fz_src, axis=-1, rising=True,
         the same as the shape of ``z_src``.
     axis: int (default -1)
         The axis to perform the interpolation over.
-    rising: bool (default True)
-        Whether the values of the target z coordinate are generally rising or
-        generally falling. For example, values of pressure levels will be
-        generally falling as the z coordinate increases.
+    rising: bool (default None)
+        Whether the values of the source's interpolation coordinate values
+        are generally rising or generally falling. For example, values of
+        pressure levels will be generally falling as the z coordinate
+        increases.
         This will determine whether extrapolation needs to occur for
         ``z_target`` below the first and above the last ``z_src``.
+        If rising is None, the first two interpolation coordinate values
+        will be used to determine the general direction. In most cases,
+        this is a good option.
     interpolation: :class:`.InterpKernel` instance
         The core interpolation operation to use. :attr:`.INTERPOLATE_LINEAR`
         and :attr:`_INTERPOLATE_NEAREST` are provided for convenient
@@ -407,7 +445,7 @@ cdef class _Interpolator(object):
     """
     Where the magic happens for gridwise_interp. The work of this __init__ is
     mostly for putting the input nd arrays into a 3 and 4 dimensional form for
-    convenient (read efficient) Cython form. Inline comments should help with
+    convenient (read: efficient) Cython form. Inline comments should help with
     understanding.
 
    """
@@ -420,7 +458,7 @@ cdef class _Interpolator(object):
     cpdef public _result_working_shape, result_shape, _first_value
 
     def __init__(self, z_target, z_src, fz_src, axis=-1,
-                 bint rising=True,
+                 rising=None,
                  InterpKernel interpolation=INTERPOLATE_LINEAR,
                  ExtrapKernel extrapolation=EXTRAPOLATE_NAN):
         # Cast data to numpy arrays if not already.
@@ -496,7 +534,17 @@ cdef class _Interpolator(object):
         #: The shape of the interpolated data.
         self.result_shape = tuple(result_shape)
 
-        self.rising = rising
+        if rising is None:
+            if z_src.shape[zp_axis] < 2:
+                raise ValueError('The rising keyword must be defined when '
+                                 'the size of the source array is <2 in '
+                                 'the interpolation axis.')
+            z_src_indexer = [0] * z_src.ndim
+            z_src_indexer[zp_axis] = slice(0, 2)
+            first_two = z_src[z_src_indexer]
+            rising = first_two[0] <= first_two[1] 
+
+        self.rising = bool(rising)
 
         self.interpolation = interpolation.kernel
         self.extrapolation = extrapolation.kernel
@@ -562,7 +610,7 @@ cdef class _Interpolator(object):
                     gridwise_interpolation(z_target[i, :, j], z_src[i, :, j], fz_src[:, i, :, j],
                                            self.rising,
                                            self.interpolation,
-                                          self.extrapolation,
+                                           self.extrapolation,
                                            fz_target_view[:, i, :, j])
 
         return fz_target.reshape(self.result_shape).astype(self._target_dtype)
