@@ -368,15 +368,21 @@ cdef class LinearExtrapolator(Extrapolator):
         cdef unsigned int m = fz_src.shape[0]
         cdef unsigned int n_src_pts = fz_src.shape[1]
         cdef unsigned int p0, p1, i
-        cdef double frac
+        cdef double frac, z_step
 
         if direction < 0:
             p0, p1 = 0, 1
         else:
             p0, p1 = n_src_pts - 2, n_src_pts - 1
 
-        frac = ((level - z_src[p0]) /
-                (z_src[p1] - z_src[p0]))
+        # Compute the normalised distance of the target point between p0 and p1
+        z_step = z_src[p1] - z_src[p0]
+        if z_step == 0:
+            # If there is nothing between the last two points then we
+            # extrapolate using a 0 gradient.
+            frac = 0
+        else:
+            frac = ((level - z_src[p0]) / z_step)
 
         for i in range(m):
            fz_target[i] = fz_src[i, p0] + frac * (fz_src[i, p1] - fz_src[i, p0])

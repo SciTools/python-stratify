@@ -148,6 +148,12 @@ class Test_INTERPOLATE_LINEAR(unittest.TestCase):
         assert_array_equal(self.interpolate([0, 1, 2, 3, 4]),
                            [0, 10, 20, 30, 40])
 
+    def test_zero_gradient(self):
+        assert_array_equal(
+            stratify.interpolate([1], [0, 1, 1, 2], [10, 20, 30, 40],
+                                 interpolation='linear'),
+            [20])
+
     def test_inbetween(self):
         assert_array_equal(self.interpolate([0.5, 1.25, 2.5, 3.75]),
                            [5, 12.5, 25, 37.5])
@@ -257,6 +263,12 @@ class Test_EXTRAPOLATE_LINEAR(unittest.TestCase):
 
     def test_above(self):
         assert_array_almost_equal(self.interpolate([15.123]), [151.23])
+
+    def test_zero_gradient(self):
+        assert_array_almost_equal(
+            stratify.interpolate([2], [0, 0], [1, 1],
+                                 extrapolation='linear'),
+            [1])
 
     def test_npts(self):
         interpolation = IndexInterpolator()
@@ -369,7 +381,7 @@ class Test_interpolate(unittest.TestCase):
     def test_target_z_3d_axis_0(self):
         z_target = z_source = f_source = np.arange(3) * np.ones([4, 2, 3])
         result= vinterp.interpolate(z_target, z_source, f_source,
-                                    axis=0, extrapolation='linear')
+                                    extrapolation='linear')
         assert_array_equal(result, f_source)
 
 
