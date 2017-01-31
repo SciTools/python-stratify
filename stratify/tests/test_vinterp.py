@@ -203,6 +203,32 @@ class Test_INTERPOLATE_NEAREST(unittest.TestCase):
                            [10])
 
 
+class Test_INTERPOLATE_CUBIC(unittest.TestCase):
+    def interpolate(self, x_target, x_src):
+        interpolation = 'cubic'
+        extrapolation = DirectionExtrapolator()
+
+        x_src = np.array(x_src)
+        fx_src = np.sin(x_src)
+
+        # Use -2 to test negative number support.
+        return stratify.interpolate(np.array(x_target) - 2, x_src - 2, fx_src,
+                                    interpolation=interpolation,
+                                    extrapolation=extrapolation)
+
+    def test_on_the_mark(self):
+        x = np.linspace(0, 4, 8)
+        xs = x[::2]
+        assert_array_equal(self.interpolate(xs, x),
+                           np.sin(xs))
+
+    def test_inbetween(self):
+        x = np.linspace(0, 4, 5)
+        xs = [0.5, 1.25, 2.5, 3.75] 
+        assert_array_almost_equal(self.interpolate(xs, x),
+                                  np.sin(xs), decimal=1)
+
+
 class Test_EXTRAPOLATE_NAN(unittest.TestCase):
     def interpolate(self, x_target):
         interpolation = IndexInterpolator()
