@@ -21,6 +21,7 @@ install:
 
     # Now do the things we need to do to install it.
     - conda create -n test_env --file requirements.txt nose python=${PYTHON} ${EXTRA_DEPS} --yes --quiet
+    - conda list
     - source activate test_env
     - python setup.py build_ext install
     - mkdir not_the_source_root && cd not_the_source_root
