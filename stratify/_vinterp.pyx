@@ -8,10 +8,13 @@ cimport numpy as np
 cimport cython
 
 
+cdef extern from "numpy/npy_math.h" nogil:
+    bint isnan "npy_isnan"(long double)
+    float NAN "NPY_NAN"
+    float INFINITY "NPY_INFINITY"
+
+
 cdef extern from "math.h" nogil:
-    bint isnan(long double)
-    float INFINITY
-    float NAN
     double fabs(double z)
 
 
@@ -177,8 +180,8 @@ cdef class Interpolator(object):
         Parameters:
         ----------
         i (unsigned int) - the current (upper) index along z_src. 0 <= i < z_src.size[0]
-                  i will only ever be 0 if z_src[i] == current_level.   
-                  the interpolation value may lie on exactly i, but will never lie on exactly i-1. 
+                  i will only ever be 0 if z_src[i] == current_level.
+                  the interpolation value may lie on exactly i, but will never lie on exactly i-1.
         z_src (double array) - the 1d column of z_src values.
         fz_src (2d double array) - the m 1d columns of fz_src values.
                                fz_src.shape[1] == z_src.shape[0].
@@ -288,13 +291,13 @@ cdef class PyFuncInterpolator(Interpolator):
 
 
 cdef class Extrapolator(object):
-    cdef long kernel(self, int direction, 
+    cdef long kernel(self, int direction,
                      double[:] z_src, double[:, :] fz_src,
                      double current_level, double[:] fz_target
                     ) nogil except -1:
         """
         Defines the inner part of an extrapolation operation.
-        
+
         Parameters:
         ----------
         direction (int) - -1 for the bottom edge, +1 for the top edge
@@ -610,7 +613,7 @@ cdef class _Interpolation(object):
             z_src_indexer = [0] * z_src.ndim
             z_src_indexer[zp_axis] = slice(0, 2)
             first_two = z_src[z_src_indexer]
-            rising = first_two[0] <= first_two[1] 
+            rising = first_two[0] <= first_two[1]
 
         self.rising = bool(rising)
 
