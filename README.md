@@ -4,7 +4,7 @@
 
 Interpolation for restratification, particularly useful for Nd vertical interpolation of atmospheric and oceanographic datasets
 
-## Intro
+## Introduction
 
 ![An outline of the problem space](summary.png)
 
