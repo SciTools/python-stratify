@@ -8,9 +8,13 @@ Interpolation for restratification, particularly useful for Nd vertical interpol
 
 ![An outline of the problem space](summary.png)
 
-For an introduction to the vertical interpolation problem space, please see the [INTRO.ipynb](INTRO.ipynb).
+Discover the capabilites of `stratify` with this introductory [notebook](index.ipynb).
 
 ## Installation
+
+```shell
+conda install -c scitools python-stratify
+```
 
 ## Usage
 
