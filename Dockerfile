@@ -4,4 +4,4 @@ LABEL maintainer "bjlittle.pub@gmail.com"
 
 USER main
 
-RUN conda install -c conda-forge python-stratify matplotlib && python -c "import matplotlib.pyplot"
+RUN conda install -c conda-forge python-stratify matplotlib=1.5.3
