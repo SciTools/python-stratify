@@ -1,6 +1,6 @@
 # Stratify
 
-[![Build Status](https://travis-ci.org/SciTools-incubator/python-stratify.svg?branch=master)](https://travis-ci.org/SciTools-incubator/python-stratify)
+[![Build Status](https://travis-ci.org/SciTools-incubator/python-stratify.svg?branch=master)](https://travis-ci.org/SciTools-incubator/python-stratify) [![Binder](http://mybinder.org/badge.svg)](http://mybinder.org:/repo/scitools-incubator/python-stratify)
 
 Interpolation for restratification, particularly useful for Nd vertical interpolation of atmospheric and oceanographic datasets
 
