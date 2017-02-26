@@ -8,7 +8,7 @@ Interpolation for restratification, particularly useful for Nd vertical interpol
 
 Discover the capabilites of `stratify` with this introductory [notebook](index.ipynb).
 
-![An outline of the problem space](summary.png)
+[![An outline of the problem space](summary.png)](index.ipynb)
 
 ## Installation
 
