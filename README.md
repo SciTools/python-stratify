@@ -16,8 +16,6 @@ Discover the capabilites of `stratify` with this introductory [notebook](index.i
 conda install -c scitools python-stratify
 ```
 
-## Usage
-
 ## License
-
+Stratify is licenced under a BSD 3-Clause License.
 
