@@ -397,26 +397,54 @@ class Test__Interpolation_interpolate_z_target_nd(unittest.TestCase):
         assert_array_equal(result, f_source)
 
     def test_target_z_2d_over_3d_on_axis_1(self):
+        """
+        Test the case where z_target(2, 4) and z_src(3, 4) are 2d, but the
+        source data fz_src(3, 3, 4) is 3d. z_target and z_src cover the last
+        2 dimensions of fz_src. The axis of interpolation is axis=1 wrt fz_src.
+
+        """
+        # Generate the 3d source data fz_src(3, 3, 4)
         base = np.arange(3).reshape(1, 3, 1) * 2
         data = np.broadcast_to(base, (3, 3, 4))
         fz_src = data * np.arange(1, 4).reshape(3, 1, 1) * 10
+        # Generate the 2d target coordinate z_target(2, 4)
+        # The target coordinate is configured to request the interpolated
+        # mid-points over axis=1 of fz_src.
         z_target = np.repeat(np.arange(1, 4, 2).reshape(2, 1), 4, axis=1) * 10
+        # Generate the 2d source coordinate z_src(3, 4)
         z_src = np.repeat(np.arange(3).reshape(3, 1), 4, axis=1) * 20
-        interp = vinterp._Interpolation(z_target, z_src, fz_src,
-                                        axis=1)
+        # Configure the vertical interpolator.
+        interp = vinterp._Interpolation(z_target, z_src, fz_src, axis=1)
+        # Perform the vertical interpolation.
         result = interp.interpolate_z_target_nd()
+        # Generate the 3d expected interpolated result(3, 2, 4).
         expected = np.repeat(z_target[np.newaxis, ...], 3, axis=0)
         expected = expected * np.arange(1, 4).reshape(3, 1, 1)
         assert_array_equal(result, expected)
 
     def test_target_z_2d_over_3d_on_axis_m1(self):
+        """
+        Test the case where z_target(3, 3) and z_src(3, 4) are 2d, but the
+        source data fz_src(3, 3, 4) is 3d. z_target and z_src cover the last
+        2 dimensions of fz_src. The axis of interpolation is the default last
+        dimension, axis=-1, wrt fx_src.
+
+        """
+        # Generate the 3d source data fz_src(3, 3, 4)
         base = np.arange(4) * 2
         data = np.broadcast_to(base, (3, 3, 4))
         fz_src = data * np.arange(1, 4).reshape(3, 1, 1) * 10
+        # Generate the 2d target coordinate z_target(3, 3)
+        # The target coordinate is configured to request the interpolated
+        # mid-points over axis=-1 (aka axis=2) of fz_src.
         z_target = np.repeat(np.arange(1, 6, 2).reshape(1, 3), 3, axis=0) * 10
+        # Generate the 2d source coordinate z_src(3, 4)
         z_src = np.repeat(np.arange(4).reshape(1, 4), 3, axis=0) * 20
+        # Configure the vertical interpolator.
         interp = vinterp._Interpolation(z_target, z_src, fz_src,)
+        # Perform the vertical interpolation.
         result = interp.interpolate_z_target_nd()
+        # Generate the 3d expected interpolated result(3, 3, 3)
         expected = np.repeat(z_target[np.newaxis, ...], 3, axis=0)
         expected = expected * np.arange(1, 4).reshape(3, 1, 1)
         assert_array_equal(result, expected)

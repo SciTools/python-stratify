@@ -564,7 +564,12 @@ cdef class _Interpolation(object):
                         'of dimensions, got {} != {}.')
                 raise ValueError(emsg.format(z_target.ndim, z_src.ndim))
             # Ensure z_target and z_src have same shape over their
-            # non-interpolated axes.
+            # non-interpolated axes i.e. we need to ignore the axis of
+            # interpolation when comparing the shapes of z_target and z_src.
+            # E.g a z_target.shape=(3, 4, 5) and z_src.shape=(3, 10, 5),
+            # interpolating over zp_axis=1 is fine as (3, :, 5) == (3, :, 5).
+            # However, a z_target.shape=(3, 4, 6) and z_src.shape=(3, 10, 5),
+            # interpolating over zp_axis=1 must fail as (3, :, 6) != (3, :, 5)
             zts, zss = z_target.shape, z_src.shape
             ztsp, zssp = zip(*[(str(j), str(k)) if i!=zp_axis else (':', ':')
                                for i, (j, k) in enumerate(zip(zts, zss))])
