@@ -461,10 +461,13 @@ def interpolate(z_target, z_src, fz_src, axis=-1, rising=None,
 
     Parameters
     ----------
-    z_target: 1d array
+    z_target: 1d or nd array
         Target coordinate.
         This coordinate defines the levels to interpolate the source data
-        ``fz_src`` to.
+        ``fz_src`` to. If ``z_target`` is an nd array, it must have the same
+        dimensionality as the source coordinate ``z_src``, and the shape of
+        ``z_target`` must match the shape of ``z_src``, although the axis
+        of interpolation may differ in dimension size.
     z_src: nd array
         Source coordinate.
         This coordinate defines the levels that the source data ``fz_src`` is
@@ -541,8 +544,6 @@ cdef class _Interpolation(object):
         else:
             self._target_dtype = fz_src.dtype
         fz_src = fz_src.astype(np.float64)
-
-        # Broadcast the z_target shape if it is 1d (which it is in most cases)
 
         # Compute the axis in absolute terms.
         fp_axis = (axis + fz_src.ndim) % fz_src.ndim
