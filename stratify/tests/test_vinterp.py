@@ -335,14 +335,34 @@ class Test_Interpolation(unittest.TestCase):
     def test_inconsistent_shape(self):
         data = np.empty([5, 4, 23, 7, 3])
         zdata = np.empty([5, 4, 3, 7, 3])
-        with self.assertRaises(ValueError):
+        emsg = 'z_src .* is not a subset of fz_src'
+        with self.assertRaisesRegexp(ValueError, emsg):
             vinterp._Interpolation([1, 3], data, zdata, axis=2)
 
     def test_axis_out_of_bounds(self):
         data = np.empty([5, 4])
         zdata = np.empty([5, 4])
-        with self.assertRaises(ValueError):
-            vinterp._Interpolation([1, 3], data, zdata, axis=4)
+        axis = 4
+        emsg = 'Axis {} out of range'
+        with self.assertRaisesRegexp(ValueError, emsg.format(axis)):
+            vinterp._Interpolation([1, 3], data, zdata, axis=axis)
+
+    def test_nd_inconsistent_ndims(self):
+        z_target = np.empty((2, 3, 4))
+        z_src = np.empty((3, 4))
+        fz_src = np.empty((2, 3, 4))
+        emsg = 'z_target and z_src must have the same number of dimensions'
+        with self.assertRaisesRegexp(ValueError, emsg):
+            vinterp._Interpolation(z_target, z_src, fz_src)
+
+    def test_nd_inconsistent_shape(self):
+        z_target = np.empty((3, 2, 6))
+        z_src = np.empty((3, 4, 5))
+        fz_src = np.empty((2, 3, 4, 5))
+        emsg = ('z_target and z_src have different shapes, '
+                'got \(3, :, 6\) != \(3, :, 5\)')
+        with self.assertRaisesRegexp(ValueError, emsg):
+            vinterp._Interpolation(z_target, z_src, fz_src, axis=2)
 
     def test_result_dtype_f4(self):
         interp = vinterp._Interpolation([17.5], np.arange(4) * 10,
@@ -362,26 +382,79 @@ class Test_Interpolation(unittest.TestCase):
 
 
 class Test__Interpolation_interpolate_z_target_nd(unittest.TestCase):
-    def test_target_z_3d_axis_0(self):
+    def test_target_z_3d_on_axis_0(self):
         z_target = z_source = f_source = np.arange(3) * np.ones([4, 2, 3])
         interp = vinterp._Interpolation(z_target, z_source, f_source,
                        axis=0, extrapolation=stratify.EXTRAPOLATE_NEAREST)
         result = interp.interpolate_z_target_nd()
         assert_array_equal(result, f_source)
 
-    def test_target_z_3d_axis_m1(self):
+    def test_target_z_3d_on_axis_m1(self):
         z_target = z_source = f_source = np.arange(3) * np.ones([4, 2, 3])
         interp = vinterp._Interpolation(z_target, z_source, f_source,
                        axis=-1, extrapolation=stratify.EXTRAPOLATE_NEAREST)
         result = interp.interpolate_z_target_nd()
         assert_array_equal(result, f_source)
 
+    def test_target_z_2d_over_3d_on_axis_1(self):
+        """
+        Test the case where z_target(2, 4) and z_src(3, 4) are 2d, but the
+        source data fz_src(3, 3, 4) is 3d. z_target and z_src cover the last
+        2 dimensions of fz_src. The axis of interpolation is axis=1 wrt fz_src.
+
+        """
+        # Generate the 3d source data fz_src(3, 3, 4)
+        base = np.arange(3).reshape(1, 3, 1) * 2
+        data = np.broadcast_to(base, (3, 3, 4))
+        fz_src = data * np.arange(1, 4).reshape(3, 1, 1) * 10
+        # Generate the 2d target coordinate z_target(2, 4)
+        # The target coordinate is configured to request the interpolated
+        # mid-points over axis=1 of fz_src.
+        z_target = np.repeat(np.arange(1, 4, 2).reshape(2, 1), 4, axis=1) * 10
+        # Generate the 2d source coordinate z_src(3, 4)
+        z_src = np.repeat(np.arange(3).reshape(3, 1), 4, axis=1) * 20
+        # Configure the vertical interpolator.
+        interp = vinterp._Interpolation(z_target, z_src, fz_src, axis=1)
+        # Perform the vertical interpolation.
+        result = interp.interpolate_z_target_nd()
+        # Generate the 3d expected interpolated result(3, 2, 4).
+        expected = np.repeat(z_target[np.newaxis, ...], 3, axis=0)
+        expected = expected * np.arange(1, 4).reshape(3, 1, 1)
+        assert_array_equal(result, expected)
+
+    def test_target_z_2d_over_3d_on_axis_m1(self):
+        """
+        Test the case where z_target(3, 3) and z_src(3, 4) are 2d, but the
+        source data fz_src(3, 3, 4) is 3d. z_target and z_src cover the last
+        2 dimensions of fz_src. The axis of interpolation is the default last
+        dimension, axis=-1, wrt fx_src.
+
+        """
+        # Generate the 3d source data fz_src(3, 3, 4)
+        base = np.arange(4) * 2
+        data = np.broadcast_to(base, (3, 3, 4))
+        fz_src = data * np.arange(1, 4).reshape(3, 1, 1) * 10
+        # Generate the 2d target coordinate z_target(3, 3)
+        # The target coordinate is configured to request the interpolated
+        # mid-points over axis=-1 (aka axis=2) of fz_src.
+        z_target = np.repeat(np.arange(1, 6, 2).reshape(1, 3), 3, axis=0) * 10
+        # Generate the 2d source coordinate z_src(3, 4)
+        z_src = np.repeat(np.arange(4).reshape(1, 4), 3, axis=0) * 20
+        # Configure the vertical interpolator.
+        interp = vinterp._Interpolation(z_target, z_src, fz_src,)
+        # Perform the vertical interpolation.
+        result = interp.interpolate_z_target_nd()
+        # Generate the 3d expected interpolated result(3, 3, 3)
+        expected = np.repeat(z_target[np.newaxis, ...], 3, axis=0)
+        expected = expected * np.arange(1, 4).reshape(3, 1, 1)
+        assert_array_equal(result, expected)
+
 
 class Test_interpolate(unittest.TestCase):
     def test_target_z_3d_axis_0(self):
         z_target = z_source = f_source = np.arange(3) * np.ones([4, 2, 3])
-        result= vinterp.interpolate(z_target, z_source, f_source,
-                                    extrapolation='linear')
+        result = vinterp.interpolate(z_target, z_source, f_source,
+                                     extrapolation='linear')
         assert_array_equal(result, f_source)
 
 

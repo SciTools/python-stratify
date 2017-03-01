@@ -56,16 +56,15 @@ cdef long gridwise_interpolation(double[:] z_target, double[:] z_src,
 
     Parameters
     ----------
-    z_target - the levels to interpolate to.
-    z_src - the coordinate from which to find the levels.
-    fz_src - the data to use for the actual interpolation
+    z_target - the levels to interpolate the source data ``fz_src`` to.
+    z_src - the levels that the source data ``fz_src`` is interpolated from.
+    fz_src - the source data to be interpolated.
     increasing - true when increasing Z index generally implies increasing Z values
     interpolation - the inner interpolation functionality. See the definition of
                     Interpolator.
     extrapolation - the inner extrapolation functionality. See the definition of
                     Extrapolator.
-    fz_target - the pre-allocated array to be used for the outputting the result
-                of interpolation.
+    fz_target - the pre-allocated array to be used for the interpolated result
 
     Note: This algorithm is not symmetric. It does not make assumptions about monotonicity
           of z_src nor z_target. Instead, the algorithm marches forwards from the last
@@ -79,8 +78,8 @@ cdef long gridwise_interpolation(double[:] z_target, double[:] z_src,
           We then continue from this index, only looking for the crossing of the next z_target.
 
           For this reason, the order that the levels are provided is important.
-          If z_src = [2, 4, 6], f_src = [2, 4, 6] and z_target = [3, 5], fz_target will be
-          [3, 5]. But if z_target = [5, 3] fz_target will be [5, <extrapolation value>].
+          If z_src = [2, 4, 6], fz_src = [2, 4, 6] and z_target = [3, 5], fz_target will be
+          [3, 5]. But if z_target = [5, 3], fz_target will be [5, <extrapolation value>].
 
     """
     cdef unsigned int i_src, i_target, n_src, n_target, i, m
@@ -462,10 +461,13 @@ def interpolate(z_target, z_src, fz_src, axis=-1, rising=None,
 
     Parameters
     ----------
-    z_target: 1d array
+    z_target: 1d or nd array
         Target coordinate.
         This coordinate defines the levels to interpolate the source data
-        ``fz_src`` to.
+        ``fz_src`` to. If ``z_target`` is an nd array, it must have the same
+        dimensionality as the source coordinate ``z_src``, and the shape of
+        ``z_target`` must match the shape of ``z_src``, although the axis
+        of interpolation may differ in dimension size.
     z_src: nd array
         Source coordinate.
         This coordinate defines the levels that the source data ``fz_src`` is
@@ -477,7 +479,7 @@ def interpolate(z_target, z_src, fz_src, axis=-1, rising=None,
         dimensions (i.e. those on its right hand side) must be exactly
         the same as the shape of ``z_src``.
     axis: int (default -1)
-        The axis to perform the interpolation over.
+        The ``fz_src`` axis to perform the interpolation over.
     rising: bool (default None)
         Whether the values of the source's interpolation coordinate values
         are generally rising or generally falling. For example, values of
@@ -526,7 +528,7 @@ cdef class _Interpolation(object):
     cdef public np.dtype _target_dtype
     cdef int rising
     cpdef public z_target, orig_shape, axis, _zp_reshaped, _fp_reshaped
-    cpdef public _result_working_shape, result_shape, _first_value
+    cpdef public _result_working_shape, result_shape
 
     def __init__(self, z_target, z_src, fz_src, axis=-1,
                  rising=None,
@@ -543,12 +545,6 @@ cdef class _Interpolation(object):
             self._target_dtype = fz_src.dtype
         fz_src = fz_src.astype(np.float64)
 
-        # Broadcast the z_target shape if it is 1d (which it is in most cases)
-        if z_target.ndim == 1:
-            z_target_size = z_target.shape[0]
-        else:
-            z_target_size = z_target.shape[axis]
-
         # Compute the axis in absolute terms.
         fp_axis = (axis + fz_src.ndim) % fz_src.ndim
         zp_axis = fp_axis - (fz_src.ndim - z_src.ndim)
@@ -557,7 +553,32 @@ cdef class _Interpolation(object):
 
         # Ensure that fz_src's shape is a superset of z_src's.
         if z_src.shape != fz_src.shape[-z_src.ndim:]:
-            raise ValueError('Shapes not consistent.')
+            emsg = 'Shape for z_src {} is not a subset of fz_src {}.'
+            raise ValueError(emsg.format(z_src.shape, fz_src.shape))
+
+        if z_target.ndim == 1:
+            z_target_size = z_target.shape[0]
+        else:
+            # Ensure z_target and z_src have same ndims.
+            if z_target.ndim != z_src.ndim:
+                emsg = ('z_target and z_src must have the same number '
+                        'of dimensions, got {} != {}.')
+                raise ValueError(emsg.format(z_target.ndim, z_src.ndim))
+            # Ensure z_target and z_src have same shape over their
+            # non-interpolated axes i.e. we need to ignore the axis of
+            # interpolation when comparing the shapes of z_target and z_src.
+            # E.g a z_target.shape=(3, 4, 5) and z_src.shape=(3, 10, 5),
+            # interpolating over zp_axis=1 is fine as (3, :, 5) == (3, :, 5).
+            # However, a z_target.shape=(3, 4, 6) and z_src.shape=(3, 10, 5),
+            # interpolating over zp_axis=1 must fail as (3, :, 6) != (3, :, 5)
+            zts, zss = z_target.shape, z_src.shape
+            ztsp, zssp = zip(*[(str(j), str(k)) if i!=zp_axis else (':', ':')
+                               for i, (j, k) in enumerate(zip(zts, zss))])
+            if ztsp != zssp:
+                sep, emsg = ', ', ('z_target and z_src have different shapes, '
+                                   'got ({}) != ({}).')
+                raise ValueError(emsg.format(sep.join(ztsp), sep.join(zssp)))
+            z_target_size = zts[zp_axis]
 
         # We are going to put the source coordinate into a 3d shape for convenience of
         # Cython interface. Writing generic, fast, n-dimensional Cython code
@@ -574,7 +595,7 @@ cdef class _Interpolation(object):
         self.z_target = z_target
         #: The shape of the input data (fz_src).
         self.orig_shape = fz_src.shape
-        #: The axis over which to do the interpolation.
+        #: The fz_src axis over which to do the interpolation.
         self.axis = axis
 
         #: The source z coordinate data reshaped into 3d working shape form.
@@ -694,4 +715,3 @@ cdef class _Interpolation(object):
                                            fz_target_view[:, i, :, j])
 
         return fz_target.reshape(self.result_shape).astype(self._target_dtype)
-
