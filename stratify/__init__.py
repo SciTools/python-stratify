@@ -6,4 +6,4 @@ from ._vinterp import (interpolate, interp_schemes, extrap_schemes,
                        EXTRAPOLATE_LINEAR, PyFuncExtrapolator, 
                        PyFuncInterpolator)
 
-__version__ = '0.1a0'
+__version__ = '0.1a3.dev0'
