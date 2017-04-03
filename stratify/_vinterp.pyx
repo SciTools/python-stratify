@@ -18,11 +18,6 @@ cdef extern from "math.h" nogil:
     double fabs(double z)
 
 
-__all__ = ['interpolate',
-           'INTERPOLATE_LINEAR', 'INTERPOLATE_NEAREST',
-           'EXTRAPOLATE_NAN', 'EXTRAPOLATE_NEAREST', 'EXTRAPOLATE_LINEAR']
-
-
 cdef inline int relative_sign(double z, double z_base) nogil:
     """
     Return the sign of z relative to z_base.
@@ -250,6 +245,94 @@ cdef class NearestNInterpolator(Interpolator):
             fz_target[i] = fz_src[i, nearest_index]
 
 
+cdef class CubicSplineInterpolator(Interpolator):
+    cdef double[:, :] knots
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef bint prepare_column(self, double[:] z_target, double[:] z_src,
+                      double[:, :] fz_src, bint increasing) nogil except -1:
+        cdef unsigned int m = fz_src.shape[0]
+        cdef unsigned int n = z_src.shape[0]
+        cdef unsigned int i, j
+        cdef double[:] x, h, u
+        cdef double[:, :] y, v, z, b
+
+        x = z_src
+        y = fz_src
+
+        with gil: 
+            u = np.empty([n - 1], np.float64)
+            v = np.empty((m, n - 1), np.float64)
+            z = np.empty([m, n], np.float64)
+            h = np.empty((n - 1,), np.float64)
+            b = np.empty((m, n - 1), np.float64)
+
+        for i in range(0, n - 1):
+            h[i] = x[i + 1] - x[i]
+            for j in range(m):
+                b[j, i] = y[j, i + 1] - y[j, i] / h[i]
+
+        # Allocate index 0.
+        u[0] = 2 * (h[1] + h[0])
+        for j in range(m):
+            v[j, 0] = 6 * (b[j, 1] - h[0])
+        
+        for i in range(1, n - 1):
+            u[i] = 2 * (h[i] + h[i-1]) - h[i-1]**2 / u[i-1]     
+            for j in range(m):
+                v[j, i] = 6 *(b[j, i] - b[j, i-1]) - h[i-1]*v[j, i-1]/u[i-1]
+                
+        for j in range(m):
+            z[j, n - 1] = 0.0  
+            for i in range(n - 2, 0, -1):
+                z[j, i] = (v[j, i] - h[i] * z[j, i+1]) / u[i]
+            z[j, 0] = 0.0
+
+        self.knots = z
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef long kernel(self, unsigned int index, double[:] z_src, double[:, :] fz_src, double level,
+                     double[:] fz_target) nogil except -1:
+        """
+        Ref: Numerical Mathematics and Computing, Fifth Edition
+        Ward Cheney & David Kincaid
+        Brooks/Cole Publ. Co. Section 9.2
+        """
+        cdef unsigned int m = fz_src.shape[0]
+        cdef unsigned int n = z_src.shape[0]
+        cdef unsigned int i
+        cdef double h, tmp, frac
+        cdef double[:] x
+        cdef double[:, :] k, y
+
+        x = z_src
+        y = fz_src
+ 
+        # Short-cut the calculation if the level falls exactly on a data point
+        if level == z_src[index]:
+            for i in range(m):
+                fz_target[i] = fz_src[i, index]
+        else:
+            # Choose the first index below the given level. The contract for a
+            # kernel interpolator is that index will be the upper bound of the
+            # z_src index except in the case where the z_src[index] is exactly
+            # the desired level. As a result, index will never arrive here at 0.
+            i = index - 1
+
+            k = self.knots
+            h = x[i + 1] - x[i] 
+
+            for j in range(m):
+                tmp = (0.5 * k[j, i] +
+                        (level - x[i]) * (k[j, i+1] - k[j, i]) / (6 * h))
+                frac = ((y[j, i+1] - y[j, i])/h -
+                        h * (k[j, i + 1] + 2 * k[j, i])/6 +
+                        (level - x[i]) * tmp)
+                fz_target[j] = y[j, i] + (level - x[i]) * frac
+
+
 cdef class PyFuncInterpolator(Interpolator):
     cdef bint use_column_prep
 
@@ -428,7 +511,8 @@ cdef class PyFuncExtrapolator(Extrapolator):
 
 
 interp_schemes = {'nearest': NearestNInterpolator,
-                  'linear': LinearInterpolator}
+                  'linear': LinearInterpolator,
+                  'cubic': CubicSplineInterpolator}
 
 extrap_schemes = {'nearest': NearestNExtrapolator,
                   'linear': LinearExtrapolator,
