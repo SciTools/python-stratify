@@ -548,7 +548,7 @@ cdef class _Interpolation(object):
         # Compute the axis in absolute terms.
         fp_axis = (axis + fz_src.ndim) % fz_src.ndim
         zp_axis = fp_axis - (fz_src.ndim - z_src.ndim)
-        if not 0 <= zp_axis < z_src.ndim or axis > z_src.ndim:
+        if (not 0 <= zp_axis < z_src.ndim or axis > fz_src.ndim):
             raise ValueError('Axis {} out of range.'.format(axis))
 
         # Ensure that fz_src's shape is a superset of z_src's.

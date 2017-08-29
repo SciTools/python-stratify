@@ -339,10 +339,20 @@ class Test_Interpolation(unittest.TestCase):
         with self.assertRaisesRegexp(ValueError, emsg):
             vinterp._Interpolation([1, 3], data, zdata, axis=2)
 
-    def test_axis_out_of_bounds(self):
+    def test_axis_out_of_bounds_fz_src_relative(self):
+        # axis is out of bounds as identified by the absolute axis with z_src.
         data = np.empty([5, 4])
         zdata = np.empty([5, 4])
         axis = 4
+        emsg = 'Axis {} out of range'
+        with self.assertRaisesRegexp(ValueError, emsg.format(axis)):
+            vinterp._Interpolation([1, 3], data, zdata, axis=axis)
+
+    def test_axis_out_of_bounds_z_src_absolute(self):
+        # axis is out of bounds as identified by the relative axis with fz_src.
+        data = np.empty([5, 4])
+        zdata = np.empty([3, 5, 4])
+        axis = 0
         emsg = 'Axis {} out of range'
         with self.assertRaisesRegexp(ValueError, emsg.format(axis)):
             vinterp._Interpolation([1, 3], data, zdata, axis=axis)
