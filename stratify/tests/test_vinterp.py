@@ -341,8 +341,8 @@ class Test_Interpolation(unittest.TestCase):
 
     def test_axis_out_of_bounds_fz_src_relative(self):
         # axis is out of bounds as identified by the absolute axis with z_src.
-        data = np.empty([5, 4])
-        zdata = np.empty([5, 4])
+        data = np.empty((5, 4))
+        zdata = np.empty((5, 4))
         axis = 4
         emsg = 'Axis {} out of range'
         with self.assertRaisesRegexp(ValueError, emsg.format(axis)):
@@ -350,12 +350,21 @@ class Test_Interpolation(unittest.TestCase):
 
     def test_axis_out_of_bounds_z_src_absolute(self):
         # axis is out of bounds as identified by the relative axis with fz_src.
-        data = np.empty([5, 4])
-        zdata = np.empty([3, 5, 4])
+        data = np.empty((5, 4))
+        zdata = np.empty((3, 5, 4))
         axis = 0
         emsg = 'Axis {} out of range'
         with self.assertRaisesRegexp(ValueError, emsg.format(axis)):
             vinterp._Interpolation([1, 3], data, zdata, axis=axis)
+
+    def test_axis_greater_than_z_src_ndim(self):
+        # Ensure that axis is not unnecessarily constrained to the dimensions
+        # of z_src.
+        data = np.empty((4))
+        zdata = np.empty((3, 5, 4))
+        axis = 2
+        result = vinterp._Interpolation(data.copy(), data, zdata, axis=axis)
+        self.assertEqual(result.result_shape, (3, 5, 4))
 
     def test_nd_inconsistent_ndims(self):
         z_target = np.empty((2, 3, 4))
