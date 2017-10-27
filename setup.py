@@ -13,6 +13,9 @@ DIR = os.path.abspath(os.path.dirname(__file__))
 
 extensions = [Extension('{}._vinterp'.format(NAME),
                         [os.path.join(NAME, '_vinterp.pyx')],
+                        include_dirs=[np.get_include()]),
+              Extension('{}._conservative'.format(NAME),
+                        [os.path.join(NAME, '_conservative.pyx')],
                         include_dirs=[np.get_include()])]
 
 
