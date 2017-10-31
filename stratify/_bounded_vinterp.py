@@ -94,7 +94,7 @@ def interpolate(z_target, z_src, fz_src, axis=-1):
     # [broadcasting_dims, axis_interpolation, z_varying]
 
     # src_data
-    bdims = range(fz_src.ndim - (z_src.ndim-1))
+    bdims = list(range(fz_src.ndim - (z_src.ndim-1)))
     data_vdims = [ind for ind in range(fz_src.ndim) if ind not in
                   (bdims + [axis])]
     data_transpose = bdims + [axis] + data_vdims
