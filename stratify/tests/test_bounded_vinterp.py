@@ -141,7 +141,9 @@ class TestExceptions(unittest.TestCase):
         target_bounds = np.zeros((2, 5, 2))
         data = np.zeros((3, 4))
 
-        msg = 'Expecting the shape of the source and target levels'
+        msg = ('Expecting the shape of the source and target levels except '
+               'the axis of interpolation to be identical.  '
+               "\('-', 4, 2\) != \(2, 5, 2\)")
         with self.assertRaisesRegexp(ValueError, msg):
             bounded_vinterp.interpolate_conservative(target_bounds,
                                                      source_bounds, data,
@@ -153,7 +155,8 @@ class TestExceptions(unittest.TestCase):
         target_bounds = np.zeros((2, 4, 2))
         data = np.zeros((3, 4))
 
-        msg = 'The provided data is not of compatible shape'
+        msg = ('The provided data is not of compatible shape with the '
+               "provided source bounds. \('-', 3, 4\) != \(2, 4\)")
         with self.assertRaisesRegexp(ValueError, msg):
             bounded_vinterp.interpolate_conservative(target_bounds,
                                                      source_bounds, data,
