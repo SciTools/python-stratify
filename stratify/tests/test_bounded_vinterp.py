@@ -27,15 +27,17 @@ class Test1D(unittest.TestCase):
 
     def test_target_half_resolution(self):
         target_bounds = self.gen_bounds(0, 7, 2)
-        res = bounded_vinterp.interpolate(target_bounds, self.bounds,
-                                          self.data, axis=1)
+        res = bounded_vinterp.interpolate_conservative(target_bounds,
+                                                       self.bounds, self.data,
+                                                       axis=1)
         target_data = np.ones((4, 3))*2
         assert_array_equal(res, target_data)
 
     def test_target_double_resolution(self):
         target_bounds = self.gen_bounds(0, 6.5, 0.5)
-        res = bounded_vinterp.interpolate(target_bounds, self.bounds,
-                                          self.data, axis=1)
+        res = bounded_vinterp.interpolate_conservative(target_bounds,
+                                                       self.bounds, self.data,
+                                                       axis=1)
         target_data = np.ones((4, 12))*.5
         assert_array_equal(res, target_data)
 
@@ -45,8 +47,9 @@ class Test1D(unittest.TestCase):
         # [1, axis_interpolation, 1].
         data = self.data[0]
         target_bounds = self.gen_bounds(0, 7, 2)
-        res = bounded_vinterp.interpolate(target_bounds, self.bounds, data,
-                                          axis=0)
+        res = bounded_vinterp.interpolate_conservative(target_bounds,
+                                                       self.bounds, data,
+                                                       axis=0)
         target_data = np.ones((3))*2
         assert_array_equal(res, target_data)
 
@@ -55,8 +58,9 @@ class Test1D(unittest.TestCase):
         # |-|-|-|-|-|-|-|-| - Target
         source_bounds = self.gen_bounds(0, 7, 1)
         target_bounds = self.gen_bounds(0, 8, 1)
-        res = bounded_vinterp.interpolate(target_bounds, source_bounds,
-                                          self.data, axis=1)
+        res = bounded_vinterp.interpolate_conservative(target_bounds,
+                                                       source_bounds,
+                                                       self.data, axis=1)
         target_data = np.ones((4, 7))
         target_data[:, -1] = 0
         assert_array_equal(res, target_data)
@@ -66,8 +70,9 @@ class Test1D(unittest.TestCase):
         # |-|-|-|-|-|-|-|-|   - Target
         source_bounds = self.gen_bounds(0, 7, 1)
         target_bounds = self.gen_bounds(-1, 7, 1)
-        res = bounded_vinterp.interpolate(target_bounds, source_bounds,
-                                          self.data, axis=1)
+        res = bounded_vinterp.interpolate_conservative(target_bounds,
+                                                       source_bounds,
+                                                       self.data, axis=1)
         target_data = np.ones((4, 7))
         target_data[:, 0] = 0
         assert_array_equal(res, target_data)
@@ -90,8 +95,9 @@ class TestND(unittest.TestCase):
 
     def test_target_half_resolution(self):
         target_bounds = self.gen_bounds(0, 7, 2)
-        res = bounded_vinterp.interpolate(target_bounds, self.bounds,
-                                          self.data, axis=1)
+        res = bounded_vinterp.interpolate_conservative(target_bounds,
+                                                       self.bounds, self.data,
+                                                       axis=1)
 
         target_data = np.ones((2, 3, 4, 3))*2
         assert_array_equal(res, target_data)
@@ -103,14 +109,16 @@ class TestND(unittest.TestCase):
         target_bounds = self.gen_bounds(0, 7, 2)
         target_bounds = target_bounds.transpose((1, 0, 2, 3))
 
-        res = bounded_vinterp.interpolate(target_bounds, bounds, data, axis=2)
+        res = bounded_vinterp.interpolate_conservative(target_bounds, bounds,
+                                                       data, axis=2)
         target_data = np.ones((2, 4, 3, 3))*2
         assert_array_equal(res, target_data)
 
     def test_target_double_resolution(self):
         target_bounds = self.gen_bounds(0, 6.5, 0.5)
-        res = bounded_vinterp.interpolate(target_bounds, self.bounds,
-                                          self.data, axis=1)
+        res = bounded_vinterp.interpolate_conservative(target_bounds,
+                                                       self.bounds,
+                                                       self.data, axis=1)
         target_data = np.ones((2, 12, 4, 3))*.5
         assert_array_equal(res, target_data)
 
@@ -123,7 +131,8 @@ class TestExceptions(unittest.TestCase):
 
         msg = 'Expecting source and target levels dimensionality'
         with self.assertRaisesRegexp(ValueError, msg):
-            bounded_vinterp.interpolate(target_bounds, source_bounds, data)
+            bounded_vinterp.interpolate_conservative(target_bounds,
+                                                     source_bounds, data)
 
     def test_mismatch_source_target_level_shape(self):
         # The source and target levels should have identical shape, other than
@@ -134,8 +143,9 @@ class TestExceptions(unittest.TestCase):
 
         msg = 'Expecting the shape of the source and target levels'
         with self.assertRaisesRegexp(ValueError, msg):
-            bounded_vinterp.interpolate(target_bounds, source_bounds, data,
-                                        axis=0)
+            bounded_vinterp.interpolate_conservative(target_bounds,
+                                                     source_bounds, data,
+                                                     axis=0)
 
     def test_mismatch_between_source_levels_source_data(self):
         # The source levels should reflect the shape of the data.
@@ -145,8 +155,9 @@ class TestExceptions(unittest.TestCase):
 
         msg = 'The provided data is not of compatible shape'
         with self.assertRaisesRegexp(ValueError, msg):
-            bounded_vinterp.interpolate(target_bounds, source_bounds, data,
-                                        axis=0)
+            bounded_vinterp.interpolate_conservative(target_bounds,
+                                                     source_bounds, data,
+                                                     axis=0)
 
     def test_unexpected_bounds_shape(self):
         # Expecting bounds of size 2 (that is the upper and lower).
@@ -157,8 +168,9 @@ class TestExceptions(unittest.TestCase):
 
         msg = 'Unexpected source and target bounds shape. shape\[-1\] != 2'
         with self.assertRaisesRegexp(ValueError, msg):
-            bounded_vinterp.interpolate(target_bounds, source_bounds, data,
-                                        axis=0)
+            bounded_vinterp.interpolate_conservative(target_bounds,
+                                                     source_bounds, data,
+                                                     axis=0)
 
     def test_not_conservative(self):
         # Where the target does not cover the full extent of the source.
@@ -175,8 +187,9 @@ class TestExceptions(unittest.TestCase):
 
         msg = 'Weights calculation yields a less than conservative result.'
         with self.assertRaisesRegexp(ValueError, msg):
-            bounded_vinterp.interpolate(target_bounds, source_bounds, data,
-                                        axis=1)
+            bounded_vinterp.interpolate_conservative(target_bounds,
+                                                     source_bounds, data,
+                                                     axis=1)
 
 
 if __name__ == '__main__':

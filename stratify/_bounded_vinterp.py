@@ -5,9 +5,9 @@ import numpy as np
 from ._conservative import conservative_interpolation
 
 
-def interpolate(z_target, z_src, fz_src, axis=-1):
+def interpolate_conservative(z_target, z_src, fz_src, axis=-1):
     """
-    Interface for optimised 1d interpolation across multiple dimensions.
+    1d conservative interpolation across multiple dimensions.
 
     This function provides the ability to perform 1d interpolation on datasets
     with more than one dimension. For instance, this function can be used to
@@ -117,7 +117,7 @@ def interpolate(z_target, z_src, fz_src, axis=-1):
                                              z_src_reshaped.shape[-1]])
     shape = int(np.product(z_target_reshaped.shape[1:-1]))
     z_target_reshaped = z_target_reshaped.reshape(
-            [z_target_reshaped.shape[0], shape, z_target_reshaped.shape[-1]])
+        [z_target_reshaped.shape[0], shape, z_target_reshaped.shape[-1]])
 
     result = conservative_interpolation(
         z_src_reshaped, z_target_reshaped, fz_src_reshaped)

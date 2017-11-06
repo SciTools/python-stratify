@@ -5,8 +5,7 @@ from ._vinterp import (interpolate, interp_schemes,  # noqa: F401
                        EXTRAPOLATE_NAN, EXTRAPOLATE_NEAREST,
                        EXTRAPOLATE_LINEAR, PyFuncExtrapolator,
                        PyFuncInterpolator)
-from ._bounded_vinterp import (interpolate as  # noqa: F401
-    interpolate_conservative)
+from ._bounded_vinterp import interpolate_conservative  # noqa: F401
 
 
 __version__ = '0.1a3.dev0'
