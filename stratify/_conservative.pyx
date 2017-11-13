@@ -4,13 +4,30 @@ cimport numpy as np
 
 cdef calculate_weights(np.ndarray[np.float64_t, ndim=2] src_point,
                        np.ndarray[np.float64_t, ndim=2] tgt_point):
-    # src_min    src_max
-    #    |----------|                 : Source
-    #       tgt_min     tgt_max
-    #          |------------|         : Target
-    #    |----------|                 : Delta (src_max - src_min)
-    #          |----|                 : Overlap (between src & tgt)
-    #    weight = overlap / delta
+    """
+    Calculate weights for a given point.
+
+    The following visually illustrates the calculation::
+
+        src_min    src_max
+           |----------|                 : Source
+              tgt_min     tgt_max
+                 |------------|         : Target
+           |----------|                 : Delta (src_max - src_min)
+                 |----|                 : Overlap (between src & tgt)
+           weight = overlap / delta
+
+    Parameters
+    ----------
+    src_point (2d double array) - Source point (at a specific location).
+    tgt_point (2d double array) - Target point (at a specific location).
+
+    Returns
+    -------
+    2d double array - Weights corresponding to shape [src_point.shape[0],
+        tgt_point.shape[0]].
+
+    """
     cdef Py_ssize_t src_ind, tgt_ind
     cdef np.float64_t delta, weight
     cdef np.ndarray[np.float64_t, ndim=2] weights
@@ -31,6 +48,28 @@ cdef calculate_weights(np.ndarray[np.float64_t, ndim=2] src_point,
 cdef apply_weights(np.ndarray[np.float64_t, ndim=3] src_point,
                    np.ndarray[np.float64_t, ndim=3] tgt_point,
                    np.ndarray[np.float64_t, ndim=3] src_data):
+    """
+    Perform conservative interpolation.
+
+    Conservation interpolation on of a dataset between a provided source
+    coordinate and a target coordinate.
+
+    Parameters
+    ----------
+    src_points (3d double array) - Source coordinate, taking the form
+        [axis_interpolation, z_varying, 2].
+    tgt_points (3d double array) - Target coordinate, taking the form
+        [axis_interpolation, z_varying, 2].
+    src_data (3d double array) - The source data, the phenonenon data to be
+        interpolated from ``src_points`` to ``tgt_points``.  Taking the form
+        [broadcasting_dims, axis_interpolation, z_varying].
+
+    Returns
+    -------
+    3d double array - Interpolated result over target levels (``tgt_points``).
+        Taking the form [broadcasting_dims, axis_interpolation, z_varying].
+
+    """
     cdef Py_ssize_t ind
     cdef np.ndarray[np.float64_t, ndim=3] results
     cdef np.ndarray[np.float64_t, ndim=2] weights
@@ -50,6 +89,29 @@ cdef apply_weights(np.ndarray[np.float64_t, ndim=3] src_point,
 
 
 def conservative_interpolation(src_points, tgt_points, src_data):
+    """
+    Perform conservative interpolation.
+
+    Conservation interpolation of a dataset between a provided source
+    coordinate and a target coordinate.  All inputs are recast to 64-bit float
+    arrays before calculation.
+
+    Parameters
+    ----------
+    src_points (3d array) - Source coordinate, taking the form
+        [axis_interpolation, z_varying, 2].
+    tgt_points (3d array) - Target coordinate, taking the form
+        [axis_interpolation, z_varying, 2].
+    src_data (3d array) - The source data, the phenonenon data to be
+        interpolated from ``src_points`` to ``tgt_points``.  Taking the form
+        [broadcasting_dims, axis_interpolation, z_varying].
+
+    Returns
+    -------
+    3d double array - Interpolated result over target levels (``tgt_points``).
+        Taking the form [broadcasting_dims, axis_interpolation, z_varying].
+
+    """
     return apply_weights(src_points.astype('float64'),
                          tgt_points.astype('float64'),
                          src_data.astype('float64'))
