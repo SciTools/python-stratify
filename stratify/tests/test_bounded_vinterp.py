@@ -65,6 +65,20 @@ class Test1D(unittest.TestCase):
         target_data[:, -1] = 0
         assert_array_equal(res, target_data)
 
+    def test_target_extends_above_source_non_equally_spaced_coords(self):
+        # |--|--|-------||  - Source
+        # |-|-|-|-|-|-|-|-| - Target
+        source_bounds = np.array([[0, 1.5], [1.5, 2], [2, 6], [6, 6.5]])
+        target_bounds = self.gen_bounds(0, 8, 1)
+        data = np.ones((4, 4))
+        res = bounded_vinterp.interpolate_conservative(target_bounds,
+                                                       source_bounds, data,
+                                                       axis=1)
+        target_data = np.array(
+            [1/1.5, 1 + ((1/3.)/1), 0.25, 0.25, 0.25, 0.25, 1.])[None]
+        target_data = np.repeat(target_data, 4, 0)
+        assert_array_equal(res, target_data)
+
     def test_target_extends_below_source(self):
         #   |-|-|-|-|-|-|-|   - Source
         # |-|-|-|-|-|-|-|-|   - Target
