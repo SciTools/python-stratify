@@ -51,8 +51,9 @@ cdef apply_weights(np.ndarray[np.float64_t, ndim=3] src_point,
     """
     Perform conservative interpolation.
 
-    Conservation interpolation on of a dataset between a provided source
-    coordinate and a target coordinate.
+    Conservation interpolation of a dataset between a provided source
+    coordinate and a target coordinate.  Where no source cells contribute to a
+    target cell, a np.nan value is returned.
 
     Parameters
     ----------
@@ -60,7 +61,7 @@ cdef apply_weights(np.ndarray[np.float64_t, ndim=3] src_point,
         [axis_interpolation, z_varying, 2].
     tgt_points (3d double array) - Target coordinate, taking the form
         [axis_interpolation, z_varying, 2].
-    src_data (3d double array) - The source data, the phenonenon data to be
+    src_data (3d double array) - The source data, the phenomenon data to be
         interpolated from ``src_points`` to ``tgt_points``.  Taking the form
         [broadcasting_dims, axis_interpolation, z_varying].
 
@@ -85,6 +86,8 @@ cdef apply_weights(np.ndarray[np.float64_t, ndim=3] src_point,
             raise ValueError(msg)
         results[..., ind] = (
             weights * src_data[..., ind][..., None]).sum(axis=1)
+    # Return np.nan for those target cells where no source contributes.
+    results[:, weights.sum(axis=0) == 0, :] = np.nan
     return results
 
 
