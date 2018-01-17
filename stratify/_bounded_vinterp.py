@@ -49,8 +49,10 @@ def interpolate_conservative(z_target, z_src, fz_src, axis=-1):
 
     Note
     ----
-    Support for 1D z_target and corresponding ND z_src will be provided in
+    - Support for 1D z_target and corresponding ND z_src will be provided in
     future as driven by user requirement.
+    - Those cells, where 'nan' values in the source data contribute, a 'nan'
+      value is returned.
 
     """
     if z_src.ndim != z_target.ndim:

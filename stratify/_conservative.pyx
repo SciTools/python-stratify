@@ -72,8 +72,9 @@ cdef apply_weights(np.ndarray[np.float64_t, ndim=3] src_point,
 
     """
     cdef Py_ssize_t ind
-    cdef np.ndarray[np.float64_t, ndim=3] results
+    cdef np.ndarray[np.float64_t, ndim=3] results, weighted_contrib
     cdef np.ndarray[np.float64_t, ndim=2] weights
+    cdef np.ndarray[np.int64_t, ndim=2] nan_src_contrib
     results = np.zeros(
         [src_data.shape[0], tgt_point.shape[0], src_data.shape[2]],
         dtype='float64')
@@ -84,10 +85,16 @@ cdef apply_weights(np.ndarray[np.float64_t, ndim=3] src_point,
             msg = ('Weights calculation yields a less than conservative '
                    'result.  Aborting.')
             raise ValueError(msg)
+        weighted_contrib = weights * src_data[..., ind][..., None]
         results[..., ind] = (
-            weights * src_data[..., ind][..., None]).sum(axis=1)
-    # Return np.nan for those target cells where no source contributes.
-    results[:, weights.sum(axis=0) == 0, :] = np.nan
+            np.nansum(weighted_contrib, axis=1))
+        # Return nan values for those target cells, where there is any
+        # contribution of nan data from the source data.
+        nan_src_contrib = ((weights > 0) * np.isnan(weighted_contrib)).sum(axis=1)
+        results[..., ind][nan_src_contrib>0] = np.nan
+
+        # Return np.nan for those target cells where no source contributes.
+        results[:, weights.sum(axis=0) == 0, ind] = np.nan
     return results
 
 

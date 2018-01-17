@@ -53,6 +53,21 @@ class Test1D(unittest.TestCase):
         target_data = np.ones((3))*2
         assert_array_equal(res, target_data)
 
+    def test_source_with_nans(self):
+        # In the case of no broadcasting, transposed and reshaped array of form
+        # [broadcasting_dims, axis_interpolation, z_varying] should end up
+        # [1, axis_interpolation, 1].
+        data = self.data[0]
+        data[0] = data[-2:] = np.nan
+        target_bounds = self.gen_bounds(0, 6.5, 0.5)
+        res = bounded_vinterp.interpolate_conservative(target_bounds,
+                                                       self.bounds, data,
+                                                       axis=0)
+        target_data = np.ones((12))*.5
+        target_data[:2] = np.nan
+        target_data[-4:] = np.nan
+        assert_array_equal(res, target_data)
+
     def test_target_extends_above_source(self):
         # |-|-|-|-|-|-|-|   - Source
         # |-|-|-|-|-|-|-|-| - Target
@@ -62,7 +77,7 @@ class Test1D(unittest.TestCase):
                                                        source_bounds,
                                                        self.data, axis=1)
         target_data = np.ones((4, 7))
-        target_data[:, -1] = 0
+        target_data[:, -1] = np.nan
         assert_array_equal(res, target_data)
 
     def test_target_extends_above_source_non_equally_spaced_coords(self):
@@ -88,7 +103,7 @@ class Test1D(unittest.TestCase):
                                                        source_bounds,
                                                        self.data, axis=1)
         target_data = np.ones((4, 7))
-        target_data[:, 0] = 0
+        target_data[:, 0] = np.nan
         assert_array_equal(res, target_data)
 
 
