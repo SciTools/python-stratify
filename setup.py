@@ -41,8 +41,7 @@ setup_args = dict(
     packages=find_packages(),
     classifiers=[
         'Development Status :: 3 - Alpha',
-        ('License :: OSI Approved :: '
-         'License :: OSI Approved :: BSD License'),
+        'License :: OSI Approved :: BSD License',
         'Operating System :: MacOS :: MacOS X',
         'Operating System :: POSIX',
         'Operating System :: POSIX :: AIX',
