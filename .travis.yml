@@ -32,7 +32,7 @@ install:
     - mkdir not_the_source_root && cd not_the_source_root
 
 script:
-    - nosetests stratify --with-coverage
+    - nosetests stratify --with-coverage --cover-package=stratify
 
 after_success:
     - coveralls
