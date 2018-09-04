@@ -21,14 +21,21 @@ install:
 
     # Now do the things we need to do to install it.
     - conda create -n test_env --file requirements.txt nose python=${PYTHON} ${EXTRA_DEPS} --yes --quiet
+
+    # Install coveralls for test coverage
+    # ----------------------------------
+    - conda install -y -c conda-forge coverage python-coveralls
+
     - conda list
     - source activate test_env
     - python setup.py build_ext install
     - mkdir not_the_source_root && cd not_the_source_root
 
 script:
-    - nosetests stratify 
+    - nosetests stratify --with-coverage --cover-package=stratify
 
+after_success:
+    - coveralls
 
 # We store the files that are downloaded from continuum.io, but not the environments that are created.
 cache:
