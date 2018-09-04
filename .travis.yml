@@ -24,7 +24,7 @@ install:
 
     # Install coveralls for test coverage
     # ----------------------------------
-    - conda install -y coverage python-coveralls
+    - conda install -y -c conda-forge coverage python-coveralls
 
     - conda list
     - source activate test_env
