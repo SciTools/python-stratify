@@ -80,7 +80,7 @@ cdef apply_weights(np.ndarray[np.float64_t, ndim=3] src_point,
     # Calculate and apply weights
     for ind in range(src_data.shape[2]):
         weights = calculate_weights(src_point[:, ind], tgt_point[:, ind])
-        if not (weights.sum(axis=1) == 1).all():
+        if (abs(weights.sum(axis=1) - 1) > 1e-6).any():
             msg = ('Weights calculation yields a less than conservative '
                    'result.  Aborting.')
             raise ValueError(msg)
