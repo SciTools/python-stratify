@@ -2,6 +2,9 @@ import numpy as np
 cimport numpy as np
 
 
+FLOAT_TOLERANCE = 1e-10
+
+
 cdef calculate_weights(np.ndarray[np.float64_t, ndim=2] src_point,
                        np.ndarray[np.float64_t, ndim=2] tgt_point):
     """
@@ -71,16 +74,19 @@ cdef apply_weights(np.ndarray[np.float64_t, ndim=3] src_point,
         Taking the form [broadcasting_dims, axis_interpolation, z_varying].
 
     """
+    cdef double float_tolerance
     cdef Py_ssize_t ind
     cdef np.ndarray[np.float64_t, ndim=3] results, weighted_contrib
     cdef np.ndarray[np.float64_t, ndim=2] weights
+
+    float_tolerance = FLOAT_TOLERANCE
     results = np.zeros(
         [src_data.shape[0], tgt_point.shape[0], src_data.shape[2]],
         dtype='float64')
     # Calculate and apply weights
     for ind in range(src_data.shape[2]):
         weights = calculate_weights(src_point[:, ind], tgt_point[:, ind])
-        if (abs(weights.sum(axis=1) - 1) > 1e-6).any():
+        if (abs(weights.sum(axis=1) - 1) > float_tolerance).any():
             msg = ('Weights calculation yields a less than conservative '
                    'result.  Aborting.')
             raise ValueError(msg)

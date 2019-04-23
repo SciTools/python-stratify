@@ -1,3 +1,4 @@
+import mock
 import unittest
 
 import numpy as np
@@ -22,7 +23,7 @@ class Test1D(unittest.TestCase):
     def gen_bounds(self, start, stop, step):
         bounds = np.vstack([np.arange(start, stop-step, step),
                             np.arange(start+step, stop, step)])
-        bounds = bounds.transpose((1, 0))
+        bounds = bounds.transpose((1, 0)).astype('float')
         return bounds.copy()
 
     def test_target_half_resolution(self):
@@ -105,6 +106,24 @@ class Test1D(unittest.TestCase):
         target_data = np.ones((4, 7))
         target_data[:, 0] = np.nan
         assert_array_equal(res, target_data)
+
+    def test_test_slightly_unaligned_with_source(self):
+        # Ensure that small floating point differences don't cause trouble.
+        # First we check this actually fails with no tolerance (also checking
+        # monkey-patching), then we check it runs without a problem.
+        source_bounds = self.gen_bounds(0, 7, 1)
+        target_bounds = self.gen_bounds(-1, 7, 1)
+        source_bounds[-1, -1] = source_bounds[-1, -1] + 1e-11
+
+        msg = 'Weights calculation yields a less than conservative result'
+        with mock.patch('stratify._conservative.FLOAT_TOLERANCE', new=0):
+            with self.assertRaisesRegexp(ValueError, msg):
+                bounded_vinterp.interpolate_conservative(target_bounds,
+                                                         source_bounds,
+                                                         self.data, axis=1)
+        bounded_vinterp.interpolate_conservative(target_bounds,
+                                                 source_bounds,
+                                                 self.data, axis=1)
 
 
 class TestND(unittest.TestCase):
