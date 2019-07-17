@@ -9,6 +9,7 @@ from setuptools.command.build_ext import build_ext as _build_ext
 
 PACKAGE_NAME = 'stratify'
 PACKAGE_DIR = os.path.abspath(os.path.dirname(__file__))
+CYTHON_DIRECTIVES = {'linetrace': True, 'binding': True}
 
 try:
     # Detect if Cython is available. Where it is, use it, otherwise fall back
@@ -40,7 +41,7 @@ for source_file in glob.glob('{}/*{}'.format(PACKAGE_NAME, source_suffix)):
 
 if USE_CYTHON:
     from Cython.Build import cythonize
-    extensions = cythonize(extensions)
+    extensions = cythonize(extensions, compiler_directives=CYTHON_DIRECTIVES)
 
 
 class SDist(_sdist):
@@ -48,7 +49,7 @@ class SDist(_sdist):
     # an install dependency.
     def run(self):
         from Cython.Build import cythonize
-        cythonize(extensions)
+        cythonize(extensions, compiler_directives=CYTHON_DIRECTIVES)
         _sdist.run(self)
 
 
