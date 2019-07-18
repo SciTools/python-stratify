@@ -13,17 +13,16 @@ CYTHON_DIRECTIVES = {'linetrace': True, 'binding': True}
 try:
     # Detect if Cython is available. Where it is, use it, otherwise fall back
     # to C source included with source distribution.
-    import Cython
-    USE_CYTHON = True
+    from Cython.Build import cythonize
 except ImportError:
-    USE_CYTHON = False
+    cythonize = None
 
-source_suffix = '.pyx' if USE_CYTHON else '.c'
+source_suffix = '.pyx' if cythonize else '.c'
 extension_kwargs = {}
 cython_coverage_enabled = os.environ.get('CYTHON_COVERAGE', None)
-if USE_CYTHON and cython_coverage_enabled:
+if cythonize and cython_coverage_enabled:
     extension_kwargs.update({'define_macros': [('CYTHON_TRACE_NOGIL', '1')]})
-if USE_CYTHON:
+if cythonize:
     # Cython requires numpy include headers
     import numpy as np
     extension_kwargs.update({'include_dirs': [np.get_include()]})
@@ -38,8 +37,7 @@ for source_file in glob.glob('{}/*{}'.format(PACKAGE_NAME, source_suffix)):
                       PACKAGE_NAME, source_file_nosuf, source_suffix)],
                   **extension_kwargs))
 
-if USE_CYTHON:
-    from Cython.Build import cythonize
+if cythonize:
     extensions = cythonize(extensions, compiler_directives=CYTHON_DIRECTIVES)
 
 
@@ -47,7 +45,6 @@ class SDist(_sdist):
     # Source distribution build runs Cython so that Cython is not needed as
     # an install dependency.
     def run(self):
-        from Cython.Build import cythonize
         cythonize(extensions, compiler_directives=CYTHON_DIRECTIVES)
         _sdist.run(self)
 
