@@ -3,7 +3,6 @@ from __future__ import absolute_import, division, print_function
 from distutils.command.sdist import sdist as _sdist
 import glob
 import os
-
 from setuptools import setup, find_packages, Extension
 from setuptools.command.build_ext import build_ext as _build_ext
 
