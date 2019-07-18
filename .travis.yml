@@ -1,46 +1,53 @@
-# The language in this case has no bearing - we are going to be making use of conda for a
-# python distribution for the scientific python stack.
-language: python
-
-sudo: false
+language: minimal
+dist: xenial
 
 env:
-    global:
-       - CONDA_INSTALL_LOCN="${HOME}/conda"
-    matrix:
-        - PYTHON=2.7
-        - PYTHON=3.6
-        - PYTHON=3
+  matrix:
+    - PYTHON_VERSION="2.7"
+    - PYTHON_VERSION="3.6"
+    - PYTHON_VERSION="3.7"
 
 install:
-    - mkdir -p ${HOME}/cache/pkgs
-    - "[ ! -f ${HOME}/cache/miniconda.sh ] && wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ${HOME}/cache/miniconda.sh || :"
-    - bash ${HOME}/cache/miniconda.sh -b -p ${CONDA_INSTALL_LOCN} && export PATH=${CONDA_INSTALL_LOCN}/bin:$PATH
+  # Install miniconda
+  # -----------------
+  - echo "Installing miniconda"
+  - export CONDA_BASE="https://repo.continuum.io/miniconda/Miniconda"
+  - if [[ "${PYTHON_VERSION}" == 2* ]]; then
+      wget --quiet "${CONDA_BASE}2-latest-Linux-x86_64.sh" -O miniconda.sh;
+    else
+      wget --quiet "${CONDA_BASE}3-latest-Linux-x86_64.sh" -O miniconda.sh;
+    fi
+  - bash miniconda.sh -b -p ${HOME}/miniconda
+  - export PATH="${HOME}/miniconda/bin:${PATH}"
 
-    # Re-use the pacakges in the cache, and download any new ones into that location.
-    - rm -rf ${CONDA_INSTALL_LOCN}/pkgs && ln -s ${HOME}/cache/pkgs ${CONDA_INSTALL_LOCN}/pkgs
+  # Create the basic testing environment
+  # ------------------------------------
+  - echo "Configure conda and create an environment"
+  - conda config --set always_yes yes --set changeps1 no
+  - conda config --set show_channel_urls True
+  - conda config --add channels conda-forge
+  - conda update --quiet conda
+  - ENV_NAME="test-environment"
+  - conda create --quiet -n ${ENV_NAME} python=${PYTHON_VERSION} pip
+  - source activate ${ENV_NAME}
 
-    # Now do the things we need to do to install it.
-    - export EXTRA_DEPS='coveralls pip pytest pytest-cov'
-    - conda create -n test_env --file requirements.txt python=${PYTHON} ${EXTRA_DEPS} --yes --quiet
-    - source activate test_env
-    - conda list
+  # Customise the testing environment
+  # ---------------------------------
+  - echo "Install python-stratify dependencies"
+  - conda install -n ${ENV_NAME} --file requirements.txt --file requirements-dev.txt
 
-    # Enable coverage of cython.
-    - export CYTHON_COVERAGE=1
+  #  Output debug info.
+  - conda list -n ${ENV_NAME}
+  - conda list -n ${ENV_NAME} --explicit
+  - conda info -a
 
-    # Install python-stratify.
-    - pip install -e .
+  # Enable coverage for Cython.
+  - export CYTHON_COVERAGE=1
+
+  # Install python-straty.
+  - pip install -e .
 
 script:
-    - pytest -ra --pyargs stratify --cov
+  - pytest -ra --pyargs stratify --cov
 
 after_success: coveralls
-
-# We store the files that are downloaded from continuum.io, but not the environments that are created.
-cache:
-    directories:
-      - $HOME/cache
-before_cache:
-  # Remove all untarred directories.
-  - find $CONDA_INSTALL_LOCN/pkgs/ -mindepth 1 -maxdepth 1 -type d -exec rm -r {} \;
