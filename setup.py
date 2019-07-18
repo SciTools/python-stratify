@@ -3,12 +3,13 @@ from __future__ import absolute_import, division, print_function
 from distutils.command.sdist import sdist as _sdist
 import glob
 import os
+import sys
 from setuptools import setup, find_packages, Extension
 from setuptools.command.build_ext import build_ext as _build_ext
 
 PACKAGE_NAME = 'stratify'
 PACKAGE_DIR = os.path.abspath(os.path.dirname(__file__))
-CYTHON_DIRECTIVES = {'linetrace': True, 'binding': True}
+
 
 try:
     # Detect if Cython is available. Where it is, use it, otherwise fall back
@@ -19,16 +20,13 @@ except ImportError:
 
 source_suffix = '.pyx' if cythonize else '.c'
 extension_kwargs = {}
+cython_directives = {'binding': True}
 cython_coverage_enabled = os.environ.get('CYTHON_COVERAGE', None)
 if cythonize and cython_coverage_enabled:
     extension_kwargs.update({'define_macros': [('CYTHON_TRACE_NOGIL', '1')]})
-if cythonize:
-    # Cython requires numpy include headers
-    import numpy as np
-    extension_kwargs.update({'include_dirs': [np.get_include()]})
+    cython_directives.update({'linetrace': True})
 
 extensions = []
-cmdclass = {}
 for source_file in glob.glob('{}/*{}'.format(PACKAGE_NAME, source_suffix)):
     source_file_nosuf, _ = os.path.splitext(os.path.basename(source_file))
     extensions.append(
@@ -37,19 +35,16 @@ for source_file in glob.glob('{}/*{}'.format(PACKAGE_NAME, source_suffix)):
                       PACKAGE_NAME, source_file_nosuf, source_suffix)],
                   **extension_kwargs))
 
-if cythonize:
-    extensions = cythonize(extensions, compiler_directives=CYTHON_DIRECTIVES)
+if cythonize and 'clean' not in sys.argv:
+    extensions = cythonize(extensions, compiler_directives=cython_directives)
 
 
 class SDist(_sdist):
     # Source distribution build runs Cython so that Cython is not needed as
     # an install dependency.
     def run(self):
-        cythonize(extensions, compiler_directives=CYTHON_DIRECTIVES)
+        cythonize(extensions, compiler_directives=cython_directives)
         _sdist.run(self)
-
-
-cmdclass['sdist'] = SDist
 
 
 def numpy_build_ext(pars):
@@ -63,9 +58,6 @@ def numpy_build_ext(pars):
             self.include_dirs.append(numpy.get_include())
 
     return NumpyBuildExt(pars)
-
-
-cmdclass['build_ext'] = numpy_build_ext
 
 
 def extract_version():
@@ -111,7 +103,7 @@ setup_args = dict(
     setup_requires=['setuptools>=18.0', 'numpy'],
     install_requires=['numpy'],
     ext_modules=extensions,
-    cmdclass=cmdclass,
+    cmdclass={'build_ext': numpy_build_ext, 'sdist': SDist},
     test_suite='{}.tests'.format(PACKAGE_NAME),
     zip_safe=False,
 )
