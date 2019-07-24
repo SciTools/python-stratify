@@ -44,7 +44,7 @@ install:
   # Enable coverage for Cython.
   - export CYTHON_COVERAGE=1
 
-  # Install python-straty.
+  # Install python-stratify.
   - pip install -e .
 
 script:
