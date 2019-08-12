@@ -539,7 +539,7 @@ cdef class _Interpolation(object):
         z_src = np.array(z_src, dtype=np.float64)
         fz_src = np.array(fz_src)
         #: The result data dtype.
-        if np.issubdtype(fz_src.dtype, int):
+        if np.issubdtype(fz_src.dtype, np.signedinteger):
             self._target_dtype = np.dtype('f8')
         else:
             self._target_dtype = fz_src.dtype
@@ -633,7 +633,7 @@ cdef class _Interpolation(object):
                                  'the interpolation axis.')
             z_src_indexer = [0] * z_src.ndim
             z_src_indexer[zp_axis] = slice(0, 2)
-            first_two = z_src[z_src_indexer]
+            first_two = z_src[tuple(z_src_indexer)]
             rising = first_two[0] <= first_two[1]
 
         self.rising = bool(rising)
