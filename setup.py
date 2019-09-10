@@ -48,10 +48,7 @@ def extract_version():
 
 # Python 2 is not supported by numpy as of version 1.17
 # but pip will attempt to install/use newer Python 3-only numpy versions.
-if sys.version_info.major < 3:
-    numpy_req = 'numpy<1.17'
-else:
-    numpy_req = 'numpy<2.0'
+numpy_req = 'numpy<1.17' if sys.version_info.major < 3 else 'numpy'
 requirements = ['setuptools>=18.0', numpy_req, 'Cython']
 
 extension_kwargs = {}
