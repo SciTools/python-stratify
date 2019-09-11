@@ -8,4 +8,4 @@ from ._vinterp import (interpolate, interp_schemes,  # noqa: F401
 from ._bounded_vinterp import interpolate_conservative  # noqa: F401
 
 
-__version__ = '0.1.1'
+__version__ = '0.2.dev0'
