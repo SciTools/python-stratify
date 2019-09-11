@@ -52,7 +52,7 @@ numpy_req = 'numpy<1.17' if sys.version_info.major < 3 else 'numpy'
 requirements = ['setuptools>=40.8.0', numpy_req, 'Cython']
 
 extension_kwargs = {}
-cython_directives = {'binding': True}
+cython_directives = {}
 cython_coverage_enabled = os.environ.get('CYTHON_COVERAGE', None)
 if cythonize and cython_coverage_enabled:
     extension_kwargs.update({'define_macros': [('CYTHON_TRACE_NOGIL', '1')]})

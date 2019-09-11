@@ -8,6 +8,7 @@ include =
     stratify/*
 omit = 
     stratify/tests/*
+    setup.py
 plugins = Cython.Coverage
 
 [report]
