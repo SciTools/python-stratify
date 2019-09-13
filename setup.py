@@ -46,6 +46,13 @@ def extract_version():
     return version
 
 
+def long_description():
+    fname = os.path.join(PACKAGE_DIR, 'README.md')
+    with open(fname, 'rb') as fi:
+        result = fi.read().decode('utf-8')
+    return result
+
+
 # Python 2 is not supported by numpy as of version 1.17
 # but pip will attempt to install/use newer Python 3-only numpy versions.
 numpy_req = 'numpy<1.17' if sys.version_info.major < 3 else 'numpy'
@@ -74,6 +81,8 @@ setup_args = dict(
     description=('Vectorized interpolators that are especially useful for '
                  'Nd vertical interpolation/stratification of atmospheric '
                  'and oceanographic datasets'),
+    long_description=long_description(),
+    long_description_content_type='text/markdown',
     author='UK Met Office',
     author_email='scitools-iris-dev@googlegroups.com',
     url='https://github.com/SciTools-incubator/python-stratify',
