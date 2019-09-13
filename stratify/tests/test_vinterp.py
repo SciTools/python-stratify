@@ -379,7 +379,7 @@ class Test_Interpolation(unittest.TestCase):
         z_src = np.empty((3, 4, 5))
         fz_src = np.empty((2, 3, 4, 5))
         emsg = ('z_target and z_src have different shapes, '
-                'got \(3, :, 6\) != \(3, :, 5\)')
+                r'got \(3, :, 6\) != \(3, :, 5\)')
         with self.assertRaisesRegexp(ValueError, emsg):
             vinterp._Interpolation(z_target, z_src, fz_src, axis=2)
 
