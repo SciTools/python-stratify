@@ -7,7 +7,7 @@ Interpolation for restratification, particularly useful for Nd vertical interpol
 
 ## Introduction
 
-Discover the capabilites of `stratify` with this introductory [notebook](https://nbviewer.jupyter.org/github/SciTools-incubator/SciTools-incubator.github.io/blob/python-stratify/index.ipynb).
+Discover the capabilites of `stratify` with this introductory [notebook](https://github.com/SciTools-incubator/python-stratify/blob/master/index.ipynb).
 
 ![](https://SciTools-incubator.github.io/python-stratify/summary.png)
 
