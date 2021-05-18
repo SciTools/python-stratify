@@ -1,5 +1,38 @@
 [build-system]
 # Defined by PEP 518
-requires = ["setuptools>=40.8.0", "wheel", "numpy", "Cython"]
+requires = [
+  "setuptools>=42",
+  "wheel",
+  "numpy",
+  "Cython",
+  "setuptools_scm[toml]>=6.0"
+]
 # Defined by PEP 517
-build-backend = "setuptools.build_meta:__legacy__"
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "stratify/_version.py"
+
+[tool.black]
+target-version = ['py38']
+line-length = 88
+include = '\.pyi?$'
+exclude = '''
+(
+  /(
+      \.eggs
+    | \.git
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+  )/
+)
+'''
+
+[tool.isort]
+profile = "black"

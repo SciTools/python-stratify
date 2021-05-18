@@ -4,8 +4,9 @@
 # z_target - the desired values of Z to generate new data for.
 # fz_src - the data, defined at each z_src
 import numpy as np
-cimport numpy as np
+
 cimport cython
+cimport numpy as np
 
 
 cdef extern from "numpy/npy_math.h" nogil:
@@ -18,9 +19,10 @@ cdef extern from "math.h" nogil:
     double fabs(double z)
 
 
-__all__ = ['interpolate',
+__all__ = ['interpolate', 'interp_schemes', 'extrap_schemes',
            'INTERPOLATE_LINEAR', 'INTERPOLATE_NEAREST',
-           'EXTRAPOLATE_NAN', 'EXTRAPOLATE_NEAREST', 'EXTRAPOLATE_LINEAR']
+           'EXTRAPOLATE_NAN', 'EXTRAPOLATE_NEAREST', 'EXTRAPOLATE_LINEAR',
+           'PyFuncExtrapolator', 'PyFuncInterpolator']
 
 
 cdef inline int relative_sign(double z, double z_base) nogil:
@@ -527,8 +529,8 @@ cdef class _Interpolation(object):
 
     cdef public np.dtype _target_dtype
     cdef int rising
-    cpdef public z_target, orig_shape, axis, _zp_reshaped, _fp_reshaped
-    cpdef public _result_working_shape, result_shape
+    cdef public z_target, orig_shape, axis, _zp_reshaped, _fp_reshaped
+    cdef public _result_working_shape, result_shape
 
     def __init__(self, z_target, z_src, fz_src, axis=-1,
                  rising=None,

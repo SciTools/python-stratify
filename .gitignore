@@ -1,3 +1,4 @@
+_version.py
 *.so
 __pycache__
 *.egg-info

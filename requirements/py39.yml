@@ -1,0 +1,24 @@
+name: stratify-dev
+
+channels:
+  - conda-forge
+
+dependencies:
+  - python=3.9
+
+# Setup dependencies.
+  - setuptools
+  - setuptools-scm
+
+# Core dependencies.
+  - numpy
+  - cython
+
+# Test dependencies.
+  - black=21.5b0
+  - codecov
+  - flake8=3.8.2
+  - isort=5.8.0
+  - pre-commit
+  - pytest
+  - pytest-cov
