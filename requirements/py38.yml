@@ -14,11 +14,14 @@ dependencies:
   - numpy
   - cython
 
-# Test dependencies.
+# Developer dependencies.
   - black=21.5b0
-  - codecov
   - flake8=3.9.2
   - isort=5.8.0
+  - pip
   - pre-commit
+
+# Test dependencies.
+  - codecov
   - pytest
   - pytest-cov
