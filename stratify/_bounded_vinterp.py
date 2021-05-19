@@ -1,5 +1,3 @@
-from __future__ import absolute_import
-
 import numpy as np
 
 from ._conservative import conservative_interpolation
@@ -56,13 +54,15 @@ def interpolate_conservative(z_target, z_src, fz_src, axis=-1):
 
     """
     if z_src.ndim != z_target.ndim:
-        msg = ('Expecting source and target levels dimensionality to be '
-               'identical.  {} != {}.')
+        msg = (
+            "Expecting source and target levels dimensionality to be "
+            "identical.  {} != {}."
+        )
         raise ValueError(msg.format(z_src.ndim, z_target.ndim))
 
     # Relative axis
     axis = axis % fz_src.ndim
-    axis_relative = axis - (fz_src.ndim - (z_target.ndim-1))
+    axis_relative = axis - (fz_src.ndim - (z_target.ndim - 1))
 
     src_shape = list(z_src.shape)
     src_shape.pop(axis_relative)
@@ -71,41 +71,45 @@ def interpolate_conservative(z_target, z_src, fz_src, axis=-1):
 
     if src_shape != tgt_shape:
         src_shape = list(z_src.shape)
-        src_shape[axis_relative] = '-'
+        src_shape[axis_relative] = "-"
         tgt_shape = list(z_target.shape)
-        src_shape[axis_relative] = '-'
-        msg = ('Expecting the shape of the source and target levels except '
-               'the axis of interpolation to be identical.  {} != {}')
+        src_shape[axis_relative] = "-"
+        msg = (
+            "Expecting the shape of the source and target levels except "
+            "the axis of interpolation to be identical.  {} != {}"
+        )
         raise ValueError(msg.format(tuple(src_shape), tuple(tgt_shape)))
 
     dat_shape = list(fz_src.shape)
-    dat_shape = dat_shape[-(z_src.ndim-1):]
+    dat_shape = dat_shape[-(z_src.ndim - 1) :]
     src_shape = list(z_src.shape[:-1])
     if dat_shape != src_shape:
         dat_shape = list(fz_src.shape)
-        dat_shape[:-(z_src.ndim-1)] = '-'
-        msg = ('The provided data is not of compatible shape with the '
-               'provided source bounds. {} != {}')
+        dat_shape[: -(z_src.ndim - 1)] = "-"
+        msg = (
+            "The provided data is not of compatible shape with the "
+            "provided source bounds. {} != {}"
+        )
         raise ValueError(msg.format(tuple(dat_shape), tuple(src_shape)))
 
     if z_src.shape[-1] != 2:
-        msg = 'Unexpected source and target bounds shape. shape[-1] != 2'
+        msg = "Unexpected source and target bounds shape. shape[-1] != 2"
         raise ValueError(msg)
 
     # Define our source in a consistent way.
     # [broadcasting_dims, axis_interpolation, z_varying]
 
     # src_data
-    bdims = list(range(fz_src.ndim - (z_src.ndim-1)))
-    data_vdims = [ind for ind in range(fz_src.ndim) if ind not in
-                  (bdims + [axis])]
+    bdims = list(range(fz_src.ndim - (z_src.ndim - 1)))
+    data_vdims = [ind for ind in range(fz_src.ndim) if ind not in (bdims + [axis])]
     data_transpose = bdims + [axis] + data_vdims
     fz_src_reshaped = np.transpose(fz_src, data_transpose)
     fz_src_orig = list(fz_src_reshaped.shape)
     shape = (
-        int(np.product(fz_src_reshaped.shape[:len(bdims)])),
+        int(np.product(fz_src_reshaped.shape[: len(bdims)])),
         fz_src_reshaped.shape[len(bdims)],
-        int(np.product(fz_src_reshaped.shape[len(bdims)+1:])))
+        int(np.product(fz_src_reshaped.shape[len(bdims) + 1 :])),
+    )
     fz_src_reshaped = fz_src_reshaped.reshape(shape)
 
     # Define our src and target bounds in a consistent way.
@@ -115,21 +119,23 @@ def interpolate_conservative(z_target, z_src, fz_src, axis=-1):
     z_target_reshaped = np.transpose(z_target, [axis_relative] + vdims)
 
     shape = int(np.product(z_src_reshaped.shape[1:-1]))
-    z_src_reshaped = z_src_reshaped.reshape([z_src_reshaped.shape[0], shape,
-                                             z_src_reshaped.shape[-1]])
+    z_src_reshaped = z_src_reshaped.reshape(
+        [z_src_reshaped.shape[0], shape, z_src_reshaped.shape[-1]]
+    )
     shape = int(np.product(z_target_reshaped.shape[1:-1]))
     z_target_reshaped = z_target_reshaped.reshape(
-        [z_target_reshaped.shape[0], shape, z_target_reshaped.shape[-1]])
+        [z_target_reshaped.shape[0], shape, z_target_reshaped.shape[-1]]
+    )
 
     result = conservative_interpolation(
-        z_src_reshaped, z_target_reshaped, fz_src_reshaped)
+        z_src_reshaped, z_target_reshaped, fz_src_reshaped
+    )
 
     # Turn the result into a shape consistent with the source.
     # First reshape, then reverse transpose.
     shape = fz_src_orig
     shape[len(bdims)] = z_target.shape[axis_relative]
     result = result.reshape(shape)
-    invert_transpose = [data_transpose.index(ind) for ind in
-                        list(range(result.ndim))]
+    invert_transpose = [data_transpose.index(ind) for ind in list(range(result.ndim))]
     result = result.transpose(invert_transpose)
     return result

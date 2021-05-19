@@ -1,9 +1,7 @@
-from __future__ import division
-
 import unittest
 
 import numpy as np
-from numpy.testing import assert_array_equal, assert_array_almost_equal
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 import stratify
 import stratify._vinterp as vinterp
@@ -15,8 +13,7 @@ class IndexInterpolator(vinterp.PyFuncInterpolator):
 
 
 class DirectionExtrapolator(vinterp.PyFuncExtrapolator):
-    def extrap_kernel(self, direction, z_src, fz_src,
-                      level, output_array):
+    def extrap_kernel(self, direction, z_src, fz_src, level, output_array):
         output_array[:] = np.inf if direction > 0 else -np.inf
 
 
@@ -29,15 +26,24 @@ class TestColumnInterpolation(unittest.TestCase):
         index_interp = IndexInterpolator()
         extrap_direct = DirectionExtrapolator()
 
-        r1 = stratify.interpolate(x_target, x_src, fx_src,
-                                  rising=rising,
-                                  interpolation=index_interp,
-                                  extrapolation=extrap_direct)
+        r1 = stratify.interpolate(
+            x_target,
+            x_src,
+            fx_src,
+            rising=rising,
+            interpolation=index_interp,
+            extrapolation=extrap_direct,
+        )
 
         if rising is not None:
-            r2 = stratify.interpolate(-1 * x_target, -1 * x_src, fx_src,
-                                     rising=not rising, interpolation=index_interp,
-                                     extrapolation=extrap_direct)
+            r2 = stratify.interpolate(
+                -1 * x_target,
+                -1 * x_src,
+                fx_src,
+                rising=not rising,
+                interpolation=index_interp,
+                extrapolation=extrap_direct,
+            )
             assert_array_equal(r1, r2)
 
         return r1
@@ -71,13 +77,13 @@ class TestColumnInterpolation(unittest.TestCase):
         assert_array_equal(r, [-np.inf, 0, 1, 2, np.inf])
 
     def test_nan_in_target(self):
-        msg = 'The target coordinate .* NaN'
-        with self.assertRaisesRegexp(ValueError, msg):
+        msg = "The target coordinate .* NaN"
+        with self.assertRaisesRegex(ValueError, msg):
             self.interpolate([1, np.nan], [2, 4, 5])
 
     def test_nan_in_src(self):
-        msg = 'The source coordinate .* NaN'
-        with self.assertRaisesRegexp(ValueError, msg):
+        msg = "The source coordinate .* NaN"
+        with self.assertRaisesRegex(ValueError, msg):
             self.interpolate([1], [0, np.nan], rising=True)
 
     def test_all_nan_in_src(self):
@@ -109,11 +115,11 @@ class TestColumnInterpolation(unittest.TestCase):
         assert_array_equal(r, [np.inf, np.inf, np.inf, np.inf])
 
     def test_non_monotonic_coordinate_interp(self):
-        result = self.interpolate([15, 5, 15.], [10., 20, 0, 20])
+        result = self.interpolate([15, 5, 15.0], [10.0, 20, 0, 20])
         assert_array_equal(result, [1, 2, 3])
 
     def test_non_monotonic_coordinate_extrap(self):
-        result = self.interpolate([0, 15, 16, 17, 5, 15., 25], [10., 40, 0, 20])
+        result = self.interpolate([0, 15, 16, 17, 5, 15.0, 25], [10.0, 40, 0, 20])
         assert_array_equal(result, [-np.inf, 1, 1, 1, 2, 3, np.inf])
 
     def test_length_one_interp(self):
@@ -122,7 +128,7 @@ class TestColumnInterpolation(unittest.TestCase):
 
     def test_auto_rising_not_enough_values(self):
         with self.assertRaises(ValueError):
-            r = self.interpolate([1], [2])
+            _ = self.interpolate([1], [2])
 
     def test_auto_rising_equal_values(self):
         # The code checks whether the first value is <= or equal to
@@ -140,27 +146,34 @@ class Test_INTERPOLATE_LINEAR(unittest.TestCase):
         fx_src = 10 * x_src
 
         # Use -2 to test negative number support.
-        return stratify.interpolate(np.array(x_target) - 2, x_src - 2, fx_src,
-                                   interpolation=interpolation,
-                                   extrapolation=extrapolation)
+        return stratify.interpolate(
+            np.array(x_target) - 2,
+            x_src - 2,
+            fx_src,
+            interpolation=interpolation,
+            extrapolation=extrapolation,
+        )
 
     def test_on_the_mark(self):
-        assert_array_equal(self.interpolate([0, 1, 2, 3, 4]),
-                           [0, 10, 20, 30, 40])
+        assert_array_equal(self.interpolate([0, 1, 2, 3, 4]), [0, 10, 20, 30, 40])
 
     def test_zero_gradient(self):
         assert_array_equal(
-            stratify.interpolate([1], [0, 1, 1, 2], [10, 20, 30, 40],
-                                 interpolation='linear'),
-            [20])
+            stratify.interpolate(
+                [1], [0, 1, 1, 2], [10, 20, 30, 40], interpolation="linear"
+            ),
+            [20],
+        )
 
     def test_inbetween(self):
-        assert_array_equal(self.interpolate([0.5, 1.25, 2.5, 3.75]),
-                           [5, 12.5, 25, 37.5])
+        assert_array_equal(
+            self.interpolate([0.5, 1.25, 2.5, 3.75]), [5, 12.5, 25, 37.5]
+        )
 
     def test_high_precision(self):
-        assert_array_almost_equal(self.interpolate([1.123456789]),
-                                  [11.23456789], decimal=6)
+        assert_array_almost_equal(
+            self.interpolate([1.123456789]), [11.23456789], decimal=6
+        )
 
     def test_single_point(self):
         # Test that a single input point that falls exactly on the target
@@ -169,11 +182,15 @@ class Test_INTERPOLATE_LINEAR(unittest.TestCase):
         interpolation = stratify.INTERPOLATE_LINEAR
         extrapolation = DirectionExtrapolator()
 
-        r = stratify.interpolate([2], [2], [20],
-                                 interpolation=interpolation,
-                                 extrapolation=extrapolation,
-                                 rising=True)
-        self.assertEqual(r, 20) 
+        r = stratify.interpolate(
+            [2],
+            [2],
+            [20],
+            interpolation=interpolation,
+            extrapolation=extrapolation,
+            rising=True,
+        )
+        self.assertEqual(r, 20)
 
 
 class Test_INTERPOLATE_NEAREST(unittest.TestCase):
@@ -185,22 +202,23 @@ class Test_INTERPOLATE_NEAREST(unittest.TestCase):
         fx_src = 10 * x_src
 
         # Use -2 to test negative number support.
-        return stratify.interpolate(np.array(x_target) - 2, x_src - 2, fx_src,
-                                    interpolation=interpolation,
-                                    extrapolation=extrapolation)
+        return stratify.interpolate(
+            np.array(x_target) - 2,
+            x_src - 2,
+            fx_src,
+            interpolation=interpolation,
+            extrapolation=extrapolation,
+        )
 
     def test_on_the_mark(self):
-        assert_array_equal(self.interpolate([0, 1, 2, 3, 4]),
-                           [0, 10, 20, 30, 40])
+        assert_array_equal(self.interpolate([0, 1, 2, 3, 4]), [0, 10, 20, 30, 40])
 
     def test_inbetween(self):
         # Nearest rounds down for exactly half way.
-        assert_array_equal(self.interpolate([0.5, 1.25, 2.5, 3.75]),
-                           [0, 10, 20, 40])
+        assert_array_equal(self.interpolate([0.5, 1.25, 2.5, 3.75]), [0, 10, 20, 40])
 
     def test_high_precision(self):
-        assert_array_equal(self.interpolate([1.123456789]),
-                           [10])
+        assert_array_equal(self.interpolate([1.123456789]), [10])
 
 
 class Test_EXTRAPOLATE_NAN(unittest.TestCase):
@@ -212,9 +230,13 @@ class Test_EXTRAPOLATE_NAN(unittest.TestCase):
         fx_src = 10 * x_src
 
         # Use -2 to test negative number support.
-        return stratify.interpolate(np.array(x_target) - 2, x_src - 2, fx_src,
-                                    interpolation=interpolation,
-                                    extrapolation=extrapolation)
+        return stratify.interpolate(
+            np.array(x_target) - 2,
+            x_src - 2,
+            fx_src,
+            interpolation=interpolation,
+            extrapolation=extrapolation,
+        )
 
     def test_below(self):
         assert_array_equal(self.interpolate([-1]), [np.nan])
@@ -232,12 +254,16 @@ class Test_EXTRAPOLATE_NEAREST(unittest.TestCase):
         fx_src = 10 * x_src
 
         # Use -2 to test negative number support.
-        return stratify.interpolate(np.array(x_target) - 2, x_src - 2, fx_src,
-                                    interpolation=interpolation,
-                                    extrapolation=extrapolation)
+        return stratify.interpolate(
+            np.array(x_target) - 2,
+            x_src - 2,
+            fx_src,
+            interpolation=interpolation,
+            extrapolation=extrapolation,
+        )
 
     def test_below(self):
-        assert_array_equal(self.interpolate([-1]), [0.])
+        assert_array_equal(self.interpolate([-1]), [0.0])
 
     def test_above(self):
         assert_array_equal(self.interpolate([5]), [40])
@@ -254,32 +280,40 @@ class Test_EXTRAPOLATE_LINEAR(unittest.TestCase):
         fx_src = 10 * x_src
 
         # Use -2 to test negative number support.
-        return stratify.interpolate(np.array(x_target) - 2, x_src - 2, fx_src,
-                                    interpolation=interpolation,
-                                    extrapolation=extrapolation)
+        return stratify.interpolate(
+            np.array(x_target) - 2,
+            x_src - 2,
+            fx_src,
+            interpolation=interpolation,
+            extrapolation=extrapolation,
+        )
 
     def test_below(self):
-        assert_array_equal(self.interpolate([-1]), [-10.])
+        assert_array_equal(self.interpolate([-1]), [-10.0])
 
     def test_above(self):
         assert_array_almost_equal(self.interpolate([15.123]), [151.23])
 
     def test_zero_gradient(self):
         assert_array_almost_equal(
-            stratify.interpolate([2], [0, 0], [1, 1],
-                                 extrapolation='linear'),
-            [1])
+            stratify.interpolate([2], [0, 0], [1, 1], extrapolation="linear"),
+            [1],
+        )
 
     def test_npts(self):
         interpolation = IndexInterpolator()
         extrapolation = stratify.EXTRAPOLATE_LINEAR
 
-        msg = (r'Linear extrapolation requires at least 2 '
-               r'source points. Got 1.')
-        with self.assertRaisesRegexp(ValueError, msg):
-            stratify.interpolate([1, 3.], [2], [20],
-                                 interpolation=interpolation,
-                                 extrapolation=extrapolation, rising=True)
+        msg = r"Linear extrapolation requires at least 2 " r"source points. Got 1."
+        with self.assertRaisesRegex(ValueError, msg):
+            stratify.interpolate(
+                [1, 3.0],
+                [2],
+                [20],
+                interpolation=interpolation,
+                extrapolation=extrapolation,
+                rising=True,
+            )
 
 
 class Test_custom_extrap_kernel(unittest.TestCase):
@@ -287,17 +321,21 @@ class Test_custom_extrap_kernel(unittest.TestCase):
         def __init__(self, *args, **kwargs):
             super(Test_custom_extrap_kernel.my_kernel, self).__init__(*args, **kwargs)
 
-        def extrap_kernel(self, direction, z_src, fz_src, level,
-                          output_array):
+        def extrap_kernel(self, direction, z_src, fz_src, level, output_array):
             output_array[:] = -10
 
     def test(self):
         interpolation = IndexInterpolator()
         extrapolation = Test_custom_extrap_kernel.my_kernel()
 
-        r = stratify.interpolate([1, 3.], [1, 2], [10, 20],
-                                 interpolation=interpolation,
-                                 extrapolation=extrapolation, rising=True)
+        r = stratify.interpolate(
+            [1, 3.0],
+            [1, 2],
+            [10, 20],
+            interpolation=interpolation,
+            extrapolation=extrapolation,
+            rising=True,
+        )
         assert_array_equal(r, [0, -10])
 
 
@@ -335,8 +373,8 @@ class Test_Interpolation(unittest.TestCase):
     def test_inconsistent_shape(self):
         data = np.empty([5, 4, 23, 7, 3])
         zdata = np.empty([5, 4, 3, 7, 3])
-        emsg = 'z_src .* is not a subset of fz_src'
-        with self.assertRaisesRegexp(ValueError, emsg):
+        emsg = "z_src .* is not a subset of fz_src"
+        with self.assertRaisesRegex(ValueError, emsg):
             vinterp._Interpolation([1, 3], data, zdata, axis=2)
 
     def test_axis_out_of_bounds_fz_src_relative(self):
@@ -344,8 +382,8 @@ class Test_Interpolation(unittest.TestCase):
         data = np.empty((5, 4))
         zdata = np.empty((5, 4))
         axis = 4
-        emsg = 'Axis {} out of range'
-        with self.assertRaisesRegexp(ValueError, emsg.format(axis)):
+        emsg = "Axis {} out of range"
+        with self.assertRaisesRegex(ValueError, emsg.format(axis)):
             vinterp._Interpolation([1, 3], data, zdata, axis=axis)
 
     def test_axis_out_of_bounds_z_src_absolute(self):
@@ -353,8 +391,8 @@ class Test_Interpolation(unittest.TestCase):
         data = np.empty((5, 4))
         zdata = np.empty((3, 5, 4))
         axis = 0
-        emsg = 'Axis {} out of range'
-        with self.assertRaisesRegexp(ValueError, emsg.format(axis)):
+        emsg = "Axis {} out of range"
+        with self.assertRaisesRegex(ValueError, emsg.format(axis)):
             vinterp._Interpolation([1, 3], data, zdata, axis=axis)
 
     def test_axis_greater_than_z_src_ndim(self):
@@ -370,48 +408,62 @@ class Test_Interpolation(unittest.TestCase):
         z_target = np.empty((2, 3, 4))
         z_src = np.empty((3, 4))
         fz_src = np.empty((2, 3, 4))
-        emsg = 'z_target and z_src must have the same number of dimensions'
-        with self.assertRaisesRegexp(ValueError, emsg):
+        emsg = "z_target and z_src must have the same number of dimensions"
+        with self.assertRaisesRegex(ValueError, emsg):
             vinterp._Interpolation(z_target, z_src, fz_src)
 
     def test_nd_inconsistent_shape(self):
         z_target = np.empty((3, 2, 6))
         z_src = np.empty((3, 4, 5))
         fz_src = np.empty((2, 3, 4, 5))
-        emsg = ('z_target and z_src have different shapes, '
-                r'got \(3, :, 6\) != \(3, :, 5\)')
-        with self.assertRaisesRegexp(ValueError, emsg):
+        emsg = (
+            "z_target and z_src have different shapes, "
+            r"got \(3, :, 6\) != \(3, :, 5\)"
+        )
+        with self.assertRaisesRegex(ValueError, emsg):
             vinterp._Interpolation(z_target, z_src, fz_src, axis=2)
 
     def test_result_dtype_f4(self):
-        interp = vinterp._Interpolation([17.5], np.arange(4) * 10,
-                                       np.arange(4, dtype='f4'))
+        interp = vinterp._Interpolation(
+            [17.5], np.arange(4) * 10, np.arange(4, dtype="f4")
+        )
         result = interp.interpolate()
 
-        self.assertEqual(interp._target_dtype, np.dtype('f4'))
-        self.assertEqual(result.dtype, np.dtype('f4'))
+        self.assertEqual(interp._target_dtype, np.dtype("f4"))
+        self.assertEqual(result.dtype, np.dtype("f4"))
 
     def test_result_dtype_f8(self):
-        interp = vinterp._Interpolation([17.5], np.arange(4) * 10,
-                                       np.arange(4, dtype='f8'))
+        interp = vinterp._Interpolation(
+            [17.5], np.arange(4) * 10, np.arange(4, dtype="f8")
+        )
         result = interp.interpolate()
 
-        self.assertEqual(interp._target_dtype, np.dtype('f8'))
-        self.assertEqual(result.dtype, np.dtype('f8'))
+        self.assertEqual(interp._target_dtype, np.dtype("f8"))
+        self.assertEqual(result.dtype, np.dtype("f8"))
 
 
 class Test__Interpolation_interpolate_z_target_nd(unittest.TestCase):
     def test_target_z_3d_on_axis_0(self):
         z_target = z_source = f_source = np.arange(3) * np.ones([4, 2, 3])
-        interp = vinterp._Interpolation(z_target, z_source, f_source,
-                       axis=0, extrapolation=stratify.EXTRAPOLATE_NEAREST)
+        interp = vinterp._Interpolation(
+            z_target,
+            z_source,
+            f_source,
+            axis=0,
+            extrapolation=stratify.EXTRAPOLATE_NEAREST,
+        )
         result = interp.interpolate_z_target_nd()
         assert_array_equal(result, f_source)
 
     def test_target_z_3d_on_axis_m1(self):
         z_target = z_source = f_source = np.arange(3) * np.ones([4, 2, 3])
-        interp = vinterp._Interpolation(z_target, z_source, f_source,
-                       axis=-1, extrapolation=stratify.EXTRAPOLATE_NEAREST)
+        interp = vinterp._Interpolation(
+            z_target,
+            z_source,
+            f_source,
+            axis=-1,
+            extrapolation=stratify.EXTRAPOLATE_NEAREST,
+        )
         result = interp.interpolate_z_target_nd()
         assert_array_equal(result, f_source)
 
@@ -460,7 +512,11 @@ class Test__Interpolation_interpolate_z_target_nd(unittest.TestCase):
         # Generate the 2d source coordinate z_src(3, 4)
         z_src = np.repeat(np.arange(4).reshape(1, 4), 3, axis=0) * 20
         # Configure the vertical interpolator.
-        interp = vinterp._Interpolation(z_target, z_src, fz_src,)
+        interp = vinterp._Interpolation(
+            z_target,
+            z_src,
+            fz_src,
+        )
         # Perform the vertical interpolation.
         result = interp.interpolate_z_target_nd()
         # Generate the 3d expected interpolated result(3, 3, 3)
@@ -472,10 +528,11 @@ class Test__Interpolation_interpolate_z_target_nd(unittest.TestCase):
 class Test_interpolate(unittest.TestCase):
     def test_target_z_3d_axis_0(self):
         z_target = z_source = f_source = np.arange(3) * np.ones([4, 2, 3])
-        result = vinterp.interpolate(z_target, z_source, f_source,
-                                     extrapolation='linear')
+        result = vinterp.interpolate(
+            z_target, z_source, f_source, extrapolation="linear"
+        )
         assert_array_equal(result, f_source)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

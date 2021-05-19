@@ -1,5 +1,0 @@
-linters:
-    flake8:
-    pep8:
-files:
-    ignore: ['*.ipynb']
