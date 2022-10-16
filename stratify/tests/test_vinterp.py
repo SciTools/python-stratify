@@ -48,10 +48,14 @@ class TestColumnInterpolation(unittest.TestCase):
             assert_array_equal(r1, r2)
 
         lazy_fx_src = da.asarray(fx_src, chunks=tuple(range(1, x_src.ndim + 1)))
-        r3 = stratify.interpolate(x_target, x_src, lazy_fx_src,
-                                  rising=rising,
-                                  interpolation=index_interp,
-                                  extrapolation=extrap_direct)
+        r3 = stratify.interpolate(
+            x_target,
+            x_src,
+            lazy_fx_src,
+            rising=rising,
+            interpolation=index_interp,
+            extrapolation=extrap_direct,
+        )
         assert_array_equal(r1, r3.compute())
 
         return r1
@@ -545,10 +549,12 @@ class Test_interpolate(unittest.TestCase):
 
         z_target = z_source = f_source = np.arange(3) * np.ones([4, 2, 3])
         f_source_dask = da.asarray(f_source, chunks=(2, 1, 2))
-        result = vinterp.interpolate(z_target, z_source, f_source,
-                                     extrapolation='linear')
-        result_dask = vinterp.interpolate(z_target, z_source, f_source_dask,
-                                     extrapolation='linear')
+        result = vinterp.interpolate(
+            z_target, z_source, f_source, extrapolation="linear"
+        )
+        result_dask = vinterp.interpolate(
+            z_target, z_source, f_source_dask, extrapolation="linear"
+        )
         assert_array_equal(result, result_dask.compute())
 
 
