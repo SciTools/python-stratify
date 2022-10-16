@@ -1,5 +1,6 @@
 import unittest
 
+import dask.array as da
 import numpy as np
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
@@ -45,6 +46,13 @@ class TestColumnInterpolation(unittest.TestCase):
                 extrapolation=extrap_direct,
             )
             assert_array_equal(r1, r2)
+
+        lazy_fx_src = da.asarray(fx_src, chunks=tuple(range(1, x_src.ndim + 1)))
+        r3 = stratify.interpolate(x_target, x_src, lazy_fx_src,
+                                  rising=rising,
+                                  interpolation=index_interp,
+                                  extrapolation=extrap_direct)
+        assert_array_equal(r1, r3.compute())
 
         return r1
 
@@ -532,6 +540,31 @@ class Test_interpolate(unittest.TestCase):
             z_target, z_source, f_source, extrapolation="linear"
         )
         assert_array_equal(result, f_source)
+
+    def test_dask(self):
+        z_target = z_source = f_source = np.arange(3) * np.ones([4, 2, 3])
+        reference = vinterp.interpolate(z_target, z_source, f_source,
+                                        extrapolation='linear')
+        # Test with various combinations of lazy input
+        f_src = da.asarray(f_source, chunks=(2, 1, 2))
+        for z_tgt in (z_target, z_target.tolist(), da.asarray(z_target)):
+            for z_src in  (z_source, da.asarray(z_source)):
+                result = vinterp.interpolate(z_tgt, z_src, f_src,
+                                             extrapolation='linear')
+                assert_array_equal(reference, result.compute())
+
+    def test_dask2(self):
+        z_target = np.array([0.5])
+        z_source = f_source = np.arange(3) * np.ones([4, 2, 3])
+        reference = vinterp.interpolate(z_target, z_source, f_source, axis=1,
+                                        extrapolation='linear')
+        # Test with various combinations of lazy input
+        f_src = da.asarray(f_source, chunks=(2, 1, 2))
+        for z_tgt in (z_target, z_target.tolist(), da.asarray(z_target)):
+            for z_src in  (z_source, da.asarray(z_source)):
+                result = vinterp.interpolate(z_tgt, z_src, f_src, axis=1,
+                                             extrapolation='linear')
+                assert_array_equal(reference, result.compute())
 
 
 if __name__ == "__main__":
