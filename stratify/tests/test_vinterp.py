@@ -559,7 +559,7 @@ class Test_interpolate(unittest.TestCase):
                 )
                 assert_array_equal(reference, result.compute())
 
-    def test_dask2(self):
+    def test_dask_1d_target(self):
         z_target = np.array([0.5])
         z_source = f_source = np.arange(3) * np.ones([4, 2, 3])
         reference = vinterp.interpolate(

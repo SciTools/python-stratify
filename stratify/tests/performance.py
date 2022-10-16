@@ -16,7 +16,6 @@ def src_data(shape=(400, 500, 100), lazy=False):
     z = np.broadcast_to(np.linspace(0, 100, shape[-1], dtype=np.float64), shape)
     if lazy:
         fz = da.arange(np.prod(shape), dtype=np.float64).reshape(shape)
-        print(fz.chunks)
     else:
         fz = np.arange(np.prod(shape), dtype=np.float64).reshape(shape)
     return z, fz

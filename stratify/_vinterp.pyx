@@ -517,51 +517,50 @@ def interpolate(z_target, z_src, fz_src, axis=-1, rising=None,
     # Dask array
     import dask.array as da
 
-    # Ensure `fz_src` is not chunked along `axis`
-    in_chunks = list(fz_src.chunks)
-    in_chunks[axis] = fz_src.shape[axis]
-    fz_src = fz_src.rechunk(in_chunks)
-    
+    # Ensure z_target is an array.
     if not isinstance(z_target, (np.ndarray, da.Array)):
       z_target = np.array(z_target)
 
-    # alternative approach
+    # Compute sensible output chunks
     if axis < 0:
       axis += fz_src.ndim
     out_shape = list(fz_src.shape)
-    out_shape[axis] = z_target.shape[0] if z_target.ndim == 1 else z_target.shape[axis]
+    if z_target.ndim == 1:
+        out_shape[axis] = z_target.shape[0]
+    else:
+        out_shape[axis] = z_target.shape[axis]
     out_chunks = [None if i == axis else 'auto' for i in range(fz_src.ndim)]
-    x = da.empty(out_shape, chunks=out_chunks, dtype=np.float64)
-    out_chunks = x.chunks
-    print('out_chunks:', out_chunks)
+    out_chunks = da.empty(
+        out_shape,
+        chunks=out_chunks,
+        dtype=fz_src.dtype,
+    ).chunks
+
+    # Ensure `fz_src` is not chunked along `axis`.
     in_chunks = list(out_chunks)
     in_chunks[axis] = fz_src.shape[axis]
-    print('in_chunks:', in_chunks)
     fz_src = fz_src.rechunk(in_chunks)
 
-    # Ensure z_src is a dask array with the correct chunks
+    # Ensure z_src is a dask array with the correct chunks.
     if isinstance(z_src, da.Array):
         z_src = z_src.rechunk(in_chunks)
     else:
         z_src = da.asarray(z_src, chunks=in_chunks)
 
-    #out_chunks = list(fz_src.chunks)
-
+    # Compute with 1-dimensional target array.
     if z_target.ndim == 1:
-        #out_chunks[axis] = z_target.shape[0]
-        print(z_src.chunks, fz_src.chunks)
         func = functools.partial(func, z_target)
         return da.map_blocks(func, z_src, fz_src,
                              chunks=out_chunks, dtype=fz_src.dtype,
                              meta=np.array((), dtype=fz_src.dtype))
 
     # Ensure z_target is a dask array with the correct chunks
-    #out_chunks[axis] = z_target.shape[axis]
     if isinstance(z_target, da.Array):
        z_target = z_target.rechunk(out_chunks)
     else:
        z_target = da.asarray(z_target, chunks=out_chunks)
-    print(z_src.chunks, fz_src.chunks, z_target.chunks)
+
+    # Compute with multi-dimensional target array.
     return da.map_blocks(func, z_target, z_src, fz_src,
                          chunks=out_chunks, dtype=fz_src.dtype,
                          meta=np.array((), dtype=fz_src.dtype))
