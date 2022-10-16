@@ -22,16 +22,17 @@ def src_data(shape=(400, 500, 100), lazy=False):
     return z, fz
 
 
-def interp_and_extrap(shape,
-                      lazy,
-                      interp=stratify.INTERPOLATE_LINEAR,
-                      extrap=stratify.EXTRAPOLATE_NAN):
+def interp_and_extrap(
+    shape, lazy, interp=stratify.INTERPOLATE_LINEAR, extrap=stratify.EXTRAPOLATE_NAN
+):
     z, fz = src_data(shape, lazy)
-    #tgt = np.linspace(-20, 120, 50) #* np.ones(shape[:-1] + (50,))
-    tgt = np.broadcast_to(np.array([2]), shape[:-1] + (1, ))
-    #tgt = da.asarray(tgt, chunks=('auto', 'auto', None))
-    #print(tgt)
-    result = stratify.interpolate(tgt, z, fz, interpolation=interp, extrapolation=extrap)
+    # tgt = np.linspace(-20, 120, 50) #* np.ones(shape[:-1] + (50,))
+    tgt = np.broadcast_to(np.array([2]), shape[:-1] + (1,))
+    # tgt = da.asarray(tgt, chunks=('auto', 'auto', None))
+    # print(tgt)
+    result = stratify.interpolate(
+        tgt, z, fz, interpolation=interp, extrapolation=extrap
+    )
     if isinstance(result, da.Array):
         print("lazy calculation")
         print(result.chunks)
@@ -40,6 +41,6 @@ def interp_and_extrap(shape,
         print("non-lazy calculation")
 
 
-if __name__ == '__main__':
-    lazy = 'lazy' in sys.argv[1:]
+if __name__ == "__main__":
+    lazy = "lazy" in sys.argv[1:]
     interp_and_extrap((20000, 1000, 22), lazy)
