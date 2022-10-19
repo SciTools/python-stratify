@@ -521,24 +521,19 @@ def interpolate(z_target, z_src, fz_src, axis=-1, rising=None,
     if not isinstance(z_target, (np.ndarray, da.Array)):
       z_target = np.array(z_target)
 
-    # Compute sensible output chunks
+    # Compute chunk sizes
     if axis < 0:
       axis += fz_src.ndim
-    out_shape = list(fz_src.shape)
+    in_chunks = list(fz_src.chunks)
+    in_chunks[axis] = fz_src.shape[axis]
+
+    out_chunks = list(in_chunks)
     if z_target.ndim == 1:
-        out_shape[axis] = z_target.shape[0]
+        out_chunks[axis] = z_target.shape[0]
     else:
-        out_shape[axis] = z_target.shape[axis]
-    out_chunks = [None if i == axis else 'auto' for i in range(fz_src.ndim)]
-    out_chunks = da.empty(
-        out_shape,
-        chunks=out_chunks,
-        dtype=fz_src.dtype,
-    ).chunks
+        out_chunks[axis] = z_target.shape[axis]
 
     # Ensure `fz_src` is not chunked along `axis`.
-    in_chunks = list(out_chunks)
-    in_chunks[axis] = fz_src.shape[axis]
     fz_src = fz_src.rechunk(in_chunks)
 
     # Ensure z_src is a dask array with the correct chunks.
