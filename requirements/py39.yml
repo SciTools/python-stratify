@@ -15,7 +15,7 @@ dependencies:
   - cython
 
 # Optional dependencies.
-  - dask[array]
+  - dask
 
 # Developer dependencies.
   - black=21.5b0

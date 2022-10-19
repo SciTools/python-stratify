@@ -2,8 +2,6 @@
 Functions that may be used to measure performance of a component.
 
 """
-import sys
-
 import dask.array as da
 import numpy as np
 
@@ -11,9 +9,7 @@ import stratify
 
 
 def src_data(shape=(400, 500, 100), lazy=False):
-    # z = np.tile(np.linspace(0, 100, shape[-1]),
-    #             np.prod(shape[:-1])).reshape(shape)
-    z = np.broadcast_to(np.linspace(0, 100, shape[-1], dtype=np.float64), shape)
+    z = np.tile(np.linspace(0, 100, shape[-1]), np.prod(shape[:2])).reshape(shape)
     if lazy:
         fz = da.arange(np.prod(shape), dtype=np.float64).reshape(shape)
     else:
@@ -22,15 +18,19 @@ def src_data(shape=(400, 500, 100), lazy=False):
 
 
 def interp_and_extrap(
-    shape, lazy, interp=stratify.INTERPOLATE_LINEAR, extrap=stratify.EXTRAPOLATE_NAN
+    shape,
+    lazy,
+    interp=stratify.INTERPOLATE_LINEAR,
+    extrap=stratify.EXTRAPOLATE_NEAREST,
 ):
     z, fz = src_data(shape, lazy)
-    # tgt = np.linspace(-20, 120, 50) #* np.ones(shape[:-1] + (50,))
-    tgt = np.broadcast_to(np.array([2]), shape[:-1] + (1,))
-    # tgt = da.asarray(tgt, chunks=('auto', 'auto', None))
-    # print(tgt)
+    tgt = np.linspace(-20, 120, 50)
     result = stratify.interpolate(
-        tgt, z, fz, interpolation=interp, extrapolation=extrap
+        tgt,
+        z,
+        fz,
+        interpolation=interp,
+        extrapolation=extrap,
     )
     if isinstance(result, da.Array):
         print("lazy calculation")
@@ -41,5 +41,6 @@ def interp_and_extrap(
 
 
 if __name__ == "__main__":
+    import sys
     lazy = "lazy" in sys.argv[1:]
-    interp_and_extrap((20000, 1000, 22), lazy)
+    interp_and_extrap(shape=(500, 600, 100), lazy=lazy)
