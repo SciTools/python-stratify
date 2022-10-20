@@ -3,6 +3,7 @@
 # z_src - the values of Z where fz_src is defined
 # z_target - the desired values of Z to generate new data for.
 # fz_src - the data, defined at each z_src
+import functools
 import numpy as np
 
 cimport cython
@@ -502,6 +503,66 @@ def interpolate(z_target, z_src, fz_src, axis=-1, rising=None,
         modes. NaN extrapolation is the default.
 
     """
+    func = functools.partial(
+        _interpolate,
+        axis=axis,
+        rising=rising,
+        interpolation=interpolation,
+        extrapolation=extrapolation
+    )
+    if not hasattr(fz_src, 'compute'):
+        # Numpy array
+        return func(z_target, z_src, fz_src)
+
+    # Dask array
+    import dask.array as da
+
+    # Ensure z_target is an array.
+    if not isinstance(z_target, (np.ndarray, da.Array)):
+      z_target = np.array(z_target)
+
+    # Compute chunk sizes
+    if axis < 0:
+      axis += fz_src.ndim
+    in_chunks = list(fz_src.chunks)
+    in_chunks[axis] = fz_src.shape[axis]
+
+    out_chunks = list(in_chunks)
+    if z_target.ndim == 1:
+        out_chunks[axis] = z_target.shape[0]
+    else:
+        out_chunks[axis] = z_target.shape[axis]
+
+    # Ensure `fz_src` is not chunked along `axis`.
+    fz_src = fz_src.rechunk(in_chunks)
+
+    # Ensure z_src is a dask array with the correct chunks.
+    if isinstance(z_src, da.Array):
+        z_src = z_src.rechunk(in_chunks)
+    else:
+        z_src = da.asarray(z_src, chunks=in_chunks)
+
+    # Compute with 1-dimensional target array.
+    if z_target.ndim == 1:
+        func = functools.partial(func, z_target)
+        return da.map_blocks(func, z_src, fz_src,
+                             chunks=out_chunks, dtype=fz_src.dtype,
+                             meta=np.array((), dtype=fz_src.dtype))
+
+    # Ensure z_target is a dask array with the correct chunks
+    if isinstance(z_target, da.Array):
+       z_target = z_target.rechunk(out_chunks)
+    else:
+       z_target = da.asarray(z_target, chunks=out_chunks)
+
+    # Compute with multi-dimensional target array.
+    return da.map_blocks(func, z_target, z_src, fz_src,
+                         chunks=out_chunks, dtype=fz_src.dtype,
+                         meta=np.array((), dtype=fz_src.dtype))
+
+
+def _interpolate(z_target, z_src, fz_src, axis=-1, rising=None,
+                 interpolation='linear', extrapolation='nan'):
     if interpolation in interp_schemes:
         interpolation = interp_schemes[interpolation]()
     if extrapolation in extrap_schemes:
