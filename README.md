@@ -12,6 +12,8 @@ Interpolation for restratification, particularly useful for Nd vertical interpol
 [![Contributors](https://img.shields.io/github/contributors/SciTools-incubator/python-stratify?style=plastic)](https://github.com/SciTools-incubator/python-stratify/graphs/contributors)
 [![Binder](http://mybinder.org/badge.svg)](http://mybinder.org:/repo/scitools-incubator/python-stratify)
 
+**Are you a [SciTools/iris](https://github.com/SciTools/iris) user?** Did you know Iris provides a convenience for using Stratify with Iris `Cube`s? Try out [`iris.experimental.stratify`](https://scitools-iris.readthedocs.io/en/latest/generated/api/iris/experimental/stratify.html) and let the devs know what you think!
+
 ## Introduction
 
 Discover the capabilities of `stratify` with this introductory [Jupyter Notebook](https://github.com/SciTools-incubator/python-stratify/blob/master/index.ipynb).
