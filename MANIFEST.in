@@ -1,3 +1,14 @@
+prune .github
 include LICENSE
 include README.md
 include pyproject.toml
+include *.ipynb
+include *.md
+include *.png
+include *.yaml
+include *.yml
+include .flake8
+include .coveragerc
+include Dockerfile
+recursive-include requirements *.yml
+recursive-include stratify *.pyx
