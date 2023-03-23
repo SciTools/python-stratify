@@ -18,9 +18,9 @@ dependencies:
   - dask
 
 # Developer dependencies.
-  - black=21.5b0
-  - flake8=3.9.2
-  - isort=5.8.0
+  - black
+  - flake8
+  - isort
   - pip
   - pre-commit
 
