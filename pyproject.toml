@@ -38,3 +38,7 @@ exclude = '''
 profile = "black"
 skip_gitignore = "True"
 verbose = "True"
+
+[tool.pytest.ini_options]
+addopts = "-ra -v --doctest-modules"
+testpaths = ["stratify/"]
