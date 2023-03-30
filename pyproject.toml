@@ -39,6 +39,12 @@ profile = "black"
 skip_gitignore = "True"
 verbose = "True"
 
+[tool.check-manifest]
+ignore = [
+    "stratify/_version.py",
+    "stratify/trace.cpp",
+]
+
 [tool.pytest.ini_options]
 addopts = "-ra -v --doctest-modules"
 testpaths = ["stratify/"]

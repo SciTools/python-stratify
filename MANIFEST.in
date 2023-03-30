@@ -1,3 +1,12 @@
-include LICENSE
-include README.md
-include pyproject.toml
+prune .github
+exclude .cirrus.yml
+exclude .coveragerc
+exclude .flake8
+exclude .gitignore
+exclude .pre-commit-config.yaml
+exclude CONTRIBUTING.md
+exclude Dockerfile
+exclude index.ipynb
+include summary.png
+recursive-include requirements *.yml *.lock *.md
+recursive-include stratify *.pyx
