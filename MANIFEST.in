@@ -1,14 +1,12 @@
 prune .github
-include LICENSE
-include README.md
-include pyproject.toml
-include *.ipynb
-include *.md
-include *.png
-include *.yaml
-include *.yml
-include .flake8
-include .coveragerc
-include Dockerfile
-recursive-include requirements *.yml
+exclude .cirrus.yml
+exclude .coveragerc
+exclude .flake8
+exclude .gitignore
+exclude .pre-commit-config.yaml
+exclude CONTRIBUTING.md
+exclude Dockerfile
+exclude index.ipynb
+include summary.png
+recursive-include requirements *.yml *.lock
 recursive-include stratify *.pyx
