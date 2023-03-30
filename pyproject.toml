@@ -44,3 +44,7 @@ ignore = [
     "stratify/_version.py",
     "stratify/trace.cpp",
 ]
+
+[tool.pytest.ini_options]
+addopts = "-ra -v --doctest-modules"
+testpaths = ["stratify/"]
