@@ -8,5 +8,5 @@ exclude CONTRIBUTING.md
 exclude Dockerfile
 exclude index.ipynb
 include summary.png
-recursive-include requirements *.yml *.lock
+recursive-include requirements *.yml *.lock *.md
 recursive-include stratify *.pyx
