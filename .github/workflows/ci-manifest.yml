@@ -10,7 +10,7 @@ on:
 
   push:
     branches-ignore:
-      - "conda-lock-auto-update"
+      - "auto-update-lockfiles"
       - "pre-commit-ci-update-config"
       - "dependabot/*"
 
@@ -23,18 +23,4 @@ concurrency:
 jobs:
   manifest:
     name: "check-manifest"
-
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        shell: bash -l {0}
-
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: "check-manifest"
-        run: |
-          pipx run check-manifest
+    uses: scitools/workflows/.github/workflows/ci-manifest.yml@2023.03.3
