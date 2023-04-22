@@ -1,63 +1,80 @@
-import builtins
 import os
 import sys
+import warnings
 from pathlib import Path
 
-from setuptools import Extension, setup
-from setuptools.command.build_ext import build_ext
+# safe to import numpy here thanks to pep518
+import numpy as np
+from setuptools import Command, Extension, setup
 
 try:
     from Cython.Build import cythonize  # isort:skip
 except ImportError:
-    wmsg = "WARNING: Cython unavailable, unable to build stratify extensions"
-    print(wmsg)
+    wmsg = "Cython unavailable, unable to build stratify extensions!"
+    warnings.warn(wmsg)
     cythonize = None
 
 
+BASE_DIR = Path(__file__).resolve().parent
 PACKAGE_NAME = "stratify"
+SRC_DIR = BASE_DIR / "src"
+STRATIFY_DIR = SRC_DIR / PACKAGE_NAME
 CMDS_NOCYTHONIZE = ["clean", "sdist"]
+FLAG_COVERAGE = "--cython-coverage"  # custom flag enabling Cython line tracing
 
 
-class NumpyBuildExt(build_ext):
-    # Delay numpy import so that setup.py can be run
-    # without numpy already being installed.
+class CleanCython(Command):
+    description = "Purge artifacts built by Cython"
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
     def finalize_options(self):
-        build_ext.finalize_options(self)
-        builtins.__NUMPY_SETUP__ = False
-        import numpy
+        pass
 
-        self.include_dirs.append(numpy.get_include())
+    def run(self):
+        for path in STRATIFY_DIR.rglob("*"):
+            if path.suffix in (".pyc", ".pyo", ".c", ".so"):
+                msg = f"clean: removing file {path}"
+                print(msg)
+                path.unlink()
 
 
-cython_coverage_enabled = os.environ.get("CYTHON_COVERAGE", None)
+cython_coverage_enabled = (
+    os.environ.get("CYTHON_COVERAGE", None) or FLAG_COVERAGE in sys.argv
+)
 cython_directives = {}
-# TODO: investigate "'PyArrayObject' has no member named 'dimensions'" cython error
-#       https://cython.readthedocs.io/en/latest/src/userguide/source_files_and_compilation.html#configuring-the-c-build
-# define_macros = [("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")]
 define_macros = []
 extensions = []
 
 if cythonize and cython_coverage_enabled:
-    define_macros.append(("CYTHON_TRACE_NOGIL", "1"))
-    cython_directives.update({"linetrace": True})
-
-for fname in Path.cwd().glob(f"{PACKAGE_NAME}/*.pyx"):
-    extensions.append(
-        Extension(
-            f"{PACKAGE_NAME}.{fname.stem}",
-            sources=[str(fname)],
-            define_macros=define_macros,
-        )
+    define_macros.extend(
+        [
+            ("CYTHON_TRACE", "1"),
+            ("CYTHON_TRACE_NOGIL", "1"),
+        ]
     )
+    cython_directives.update({"linetrace": True})
+    if FLAG_COVERAGE in sys.argv:
+        sys.argv.remove(FLAG_COVERAGE)
+    print('enabled "linetrace" Cython compiler directive')
+
+for fname in SRC_DIR.glob(f"{PACKAGE_NAME}/*.pyx"):
+    # ref: https://setuptools.pypa.io/en/latest/userguide/ext_modules.html
+    extension = Extension(
+        f"{PACKAGE_NAME}.{fname.stem}",
+        sources=[str(fname.relative_to(BASE_DIR))],
+        include_dirs=[np.get_include()],
+        define_macros=define_macros,
+    )
+    extensions.append(extension)
 
 if cythonize and not any([arg in CMDS_NOCYTHONIZE for arg in sys.argv]):
     extensions = cythonize(
         extensions, compiler_directives=cython_directives, language_level=3
     )
 
-kwargs = dict(
-    cmdclass={"build_ext": NumpyBuildExt},
-    ext_modules=extensions,
-)
-
+cmdclass = {"clean_cython": CleanCython}
+kwargs = {"cmdclass": cmdclass, "ext_modules": extensions}
 setup(**kwargs)

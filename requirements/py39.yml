@@ -11,16 +11,13 @@ dependencies:
   - setuptools-scm
 
 # Core dependencies.
-  - numpy
+  - numpy>=1.21
   - cython
 
 # Optional dependencies.
   - dask
 
 # Developer dependencies.
-  - black
-  - flake8
-  - isort
   - pip
   - pre-commit
 
