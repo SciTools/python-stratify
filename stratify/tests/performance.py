@@ -42,5 +42,6 @@ def interp_and_extrap(
 
 if __name__ == "__main__":
     import sys
+
     lazy = "lazy" in sys.argv[1:]
     interp_and_extrap(shape=(500, 600, 100), lazy=lazy)
