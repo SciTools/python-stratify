@@ -5,14 +5,16 @@ name: ci-manifest
 
 on:
   pull_request:
-    branches:
-      - "*"
 
   push:
-    branches-ignore:
-      - "auto-update-lockfiles"
-      - "pre-commit-ci-update-config"
-      - "dependabot/*"
+    branches:
+      - "master"
+      - "v*x"
+      - "!auto-update-lockfiles"
+      - "!pre-commit-ci-update-config"
+      - "!dependabot/*"
+    tags:
+      - "v*"
 
   workflow_dispatch:
 

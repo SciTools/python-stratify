@@ -1,38 +1,77 @@
 [build-system]
 # Defined by PEP 518
 requires = [
-  "setuptools>=42",
-  "wheel",
-  "numpy",
   "Cython",
-  "setuptools_scm[toml]>=6.0"
+  "oldest-supported_numpy",
+  "setuptools>=61",
+  "setuptools_scm[toml]>=7",
+  "wheel",
 ]
 # Defined by PEP 517
 build-backend = "setuptools.build_meta"
 
+[project]
+authors = [
+    {name = "Stratify Contributors", email = "scitools.pub@gmail.com"}
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: POSIX",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: Unix",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Atmospheric Science",
+]
+description = "Vectorized interpolators for Nd atmospheric and oceanographic data"
+dynamic = [
+    "dependencies",
+    "readme",
+    "version",
+]
+keywords = [
+    "atmospheric-science",
+    "cython",
+    "interpolation",
+    "numpy",
+    "python",
+    "ocean-science",
+]
+license = {text = "BSD-3-Clause"}
+name = "stratify"
+requires-python = ">=3.9"
+
+[project.urls]
+Code = "https://github.com/SciTools-incubator/python-stratify"
+Issues = "https://github.com/SciTools-incubator/python-stratify/issues"
+
+[tool.setuptools]
+license-files = ["LICENSE"]
+zip-safe = false
+
+[tool.setuptools.dynamic]
+dependencies = {file = "requirements/pypi-core.txt"}
+readme = {file = "README.md", content-type = "text/markdown"}
+
+[tool.setuptools.packages.find]
+include = ["stratify*"]
+where = ["src"]
+
 [tool.setuptools_scm]
-write_to = "stratify/_version.py"
+write_to = "src/stratify/_version.py"
+local_scheme = "dirty-tag"
 
 [tool.black]
-target-version = ['py38']
+target-version = ["py39", "py310", "py311"]
 line-length = 88
 include = '\.pyi?$'
-exclude = '''
-(
-  /(
-      \.eggs
-    | \.git
-    | \.hg
-    | \.mypy_cache
-    | \.tox
-    | \.venv
-    | _build
-    | buck-out
-    | build
-    | dist
-  )/
-)
-'''
 
 [tool.isort]
 profile = "black"
@@ -41,10 +80,11 @@ verbose = "True"
 
 [tool.check-manifest]
 ignore = [
-    "stratify/_version.py",
-    "stratify/trace.cpp",
+    "src/stratify/_conservative.c",
+    "src/stratify/_version.py",
+    "src/stratify/_vinterp.c",
 ]
 
 [tool.pytest.ini_options]
 addopts = "-ra -v --doctest-modules"
-testpaths = ["stratify/"]
+testpaths = ["src/stratify"]
