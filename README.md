@@ -25,10 +25,10 @@ Discover the capabilities of `stratify` with this introductory [Jupyter Notebook
 ## Installation
 
 ```shell
-conda install -c conda-forge python-stratify
+conda install --channel conda-forge python-stratify
 ```
 ```shell
-pip install python-stratify
+pip install stratify
 ```
 
 ## License
