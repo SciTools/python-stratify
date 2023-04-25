@@ -1,7 +1,7 @@
 # Updates the environment lock files. See the called workflow in the
 # scitools/workflows repo for more details.
 
-name: Refresh Lockfiles
+name: ci-locks
 
 
 on:
