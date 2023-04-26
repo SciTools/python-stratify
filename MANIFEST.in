@@ -2,12 +2,9 @@ prune .github
 prune requirements
 recursive-include requirements *.txt
 recursive-include src *.py *.pyx
-exclude .cirrus.yml
-exclude .coveragerc
 exclude .flake8
 exclude .gitignore
 exclude .pre-commit-config.yaml
-exclude CONTRIBUTING.md
 exclude Dockerfile
 exclude codecov.yml
 exclude index.ipynb
