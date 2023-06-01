@@ -1,5 +1,5 @@
 ---
-name: Feature request ✨
+name: Feature Request ✨
 about: Submit a request for a new feature in Python-Stratify
 title: ''
 labels: ''
