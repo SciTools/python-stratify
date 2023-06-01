@@ -1,5 +1,5 @@
 ---
-name: "Custom issue template \U0001F4F0"
+name: "Custom Issue \U0001F4F0"
 about: Submit a generic issue to help us improve Python-Stratify.
 title: ''
 labels: ''

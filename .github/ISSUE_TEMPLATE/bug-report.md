@@ -1,5 +1,5 @@
 ---
-name: "Bug report \U0001F41B"
+name: "Bug Report \U0001F41B"
 about: Submit a bug report to help us improve Python-Stratify.
 title: ''
 labels: ''
