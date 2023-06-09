@@ -28,6 +28,7 @@ authors:
 title: "python-stratify"
 abstract: "Interpolation for restratification, particularly useful for Nd vertical interpolation of atmospheric and oceanographic datasets"
 license: "BSD-3-Clause"
+license-url: "https://spdx.org/licenses/BSD-3-Clause.html"
 date-released: "2018-06-01"
 doi: "10.5281/zenodo.7863857"
 repository-code: "https://github.com/SciTools/python-stratify"
