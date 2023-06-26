@@ -1,0 +1,25 @@
+# Reference
+#   - https://github.com/actions/labeler
+#   - https://github.com/github/issue-labeler
+
+name: ci-label
+
+on:
+  pull_request_target:
+    types: [opened, edited, reopened]
+  issues:
+    types: [opened, edited, reopened]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/labeler@v4
+      - uses: github/issue-labeler@v3.1
+        with:
+          configuration-path: .github/labeler.yml
+          enable-versioning-regex: 0
