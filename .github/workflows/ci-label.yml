@@ -22,4 +22,4 @@ jobs:
       - uses: github/issue-labeler@v3.1
         with:
           configuration-path: .github/labeler.yml
-          enable-versioning-regex: 0
+          enable-versioned-regex: 0
