@@ -10,6 +10,11 @@ on:
   issues:
     types: [opened, edited, reopened]
 
+permissions:
+  issues: write
+  pull_requests: write
+  contents: read
+
 jobs:
   issue_triage:
     runs-on: ubuntu-latest
