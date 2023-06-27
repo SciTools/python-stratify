@@ -10,9 +10,9 @@
   - index.ipynb
   - '(documentation|docs)'
 
-'Type: GHA':
-  - .github/*.yml
-  - .github/**/*.yml
+#'Type: GHA':
+#  - .github/*.yml
+#  - .github/**/*.yml
 
 'Type: GHA':
   - '(gha|github action)'
