@@ -13,6 +13,8 @@
 'Type: GHA':
   - .github/*.yml
   - .github/**/*.yml
+
+'Type: GHA':
   - '(gha|github action)'
 
 'Type: Infrastructure':
