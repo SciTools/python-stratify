@@ -1,5 +1,5 @@
 'Type: Dependencies':
-  - '(?i\\deps)'
+  - '(?i/deps)'
 
 'Type: Documentation':
   - (?i)(documentation|docs)
