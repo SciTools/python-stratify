@@ -1,11 +1,11 @@
 'Type: Dependencies':
-  - '(?i/deps|dependency)'
+  - (?i)(dependencies|deps|dependency)
 
 'Type: Documentation':
-  - '(documentation|docs)'
+  - (?i)(documentation|docs)
 
 'Type: GHA':
-  - '(gha|github action)'
+  - (?i)(gha|github action)
 
 'Type: Infrastructure':
   - '(dependencies|dependency|deps|documentation|docs|gha|github action|testing|tests|coverage)'
