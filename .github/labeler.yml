@@ -1,0 +1,29 @@
+'Type: Dependencies':
+  - '(depende|deps|Deps|Depende)'
+
+'Type: Documentation':
+  - '(documentation|Docs|Documentation|Docs)'
+
+'Type: GHA':
+  - '(gha|github action|GHA|Github Action|Github action)'
+
+'Type: Infrastructure':
+  - '(depende|deps|Deps|Depende|documentation|Docs|Documentation|Docs|gha|github action|GHA|Github Action|Github action|testing|tests|coverage|Testing|Tests|Coverage)'
+
+'Type: Testing':
+  - '(testing|tests|coverage|Testing|Tests|Coverage)'
+
+'Type: Bug':
+  - '(bug|patch|fix|Bug|Fix|Patch)'
+
+'Type: Enhancement':
+  - '(feature|Feature)'
+
+'Type: Performance':
+  - '(performance|Performance)'
+
+'Type: Tech Debt':
+  - '(debt|Debt)'
+
+'Type: Question':
+  - '(question|Question)'
