@@ -14,7 +14,7 @@
   - '(testing|tests|coverage|Testing|Tests|Coverage)'
 
 'Type: Bug':
-  - '(bug|patch|fix|Bug|Fix|Patch)'
+  - '(bug|Bug)'
 
 'Type: Enhancement':
   - '(feature|Feature)'
