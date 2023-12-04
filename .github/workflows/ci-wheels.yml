@@ -14,7 +14,7 @@ on:
 
   push:
     branches:
-      - "master"
+      - "main"
       - "v*x"
       - "!auto-update-lockfiles"
       - "!pre-commit-ci-update-config"
@@ -103,8 +103,8 @@ jobs:
     needs: [build_bdist, build_sdist]
     name: "Publish to Test PyPI"
     runs-on: ubuntu-latest
-    # upload to Test PyPI for every commit on master branch
-    if: github.event_name == 'push' && github.event.ref == 'refs/heads/master'
+    # upload to Test PyPI for every commit on main branch
+    if: github.event_name == 'push' && github.event.ref == 'refs/heads/main'
     steps:
     - uses: actions/download-artifact@v3
       with:
