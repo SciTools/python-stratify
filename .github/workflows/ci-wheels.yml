@@ -80,7 +80,7 @@ jobs:
 
     - uses: actions/upload-artifact@v4
       with:
-        name: pypi-artifacts
+        name: ${{ matrix.os }} (${{ matrix.arch }}) pypi-artifacts
         path: ${{ github.workspace }}/dist/*.tar.gz
 
 
