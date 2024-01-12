@@ -94,6 +94,11 @@ jobs:
         name: pypi-sdist
         path: ${{ github.workspace }}/dist
 
+    - uses: actions/download-artifact@v4
+      with:
+        name: pypi-**-artifact
+        path: ${{ github.workspace }}/dist
+
     - shell: bash
       run: |
         ls -l ${{ github.workspace }}/dist
