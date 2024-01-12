@@ -91,7 +91,7 @@ jobs:
     steps:
     - uses: actions/download-artifact@v4
       with:
-        name: pypi-${{ matrix.os }}-${{ matrix.arch }}-artifact
+        name: pypi-sdist
         path: ${{ github.workspace }}/dist
 
     - shell: bash
@@ -108,7 +108,7 @@ jobs:
     steps:
     - uses: actions/download-artifact@v4
       with:
-        name: pypi-${{ matrix.os }}-${{ matrix.arch }}-artifact
+        name: pypi-sdist
         path: ${{ github.workspace }}/dist
 
     - uses: pypa/gh-action-pypi-publish@release/v1
@@ -129,7 +129,7 @@ jobs:
     steps:
     - uses: actions/download-artifact@v4
       with:
-        name: pypi-${{ matrix.os }}-${{ matrix.arch }}-artifact
+        name: pypi-sdist
         path: ${{ github.workspace }}/dist
 
     - uses: pypa/gh-action-pypi-publish@release/v1
