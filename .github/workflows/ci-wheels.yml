@@ -91,12 +91,7 @@ jobs:
     steps:
     - uses: actions/download-artifact@v4
       with:
-        name: pypi-sdist
-        path: ${{ github.workspace }}/dist
-
-    - uses: actions/download-artifact@v4
-      with:
-        name: pypi-**-artifact
+        merge-multiple: true
         path: ${{ github.workspace }}/dist
 
     - shell: bash
