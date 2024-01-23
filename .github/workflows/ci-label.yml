@@ -1,27 +1,17 @@
 # Reference
 #   - https://github.com/actions/labeler
-#   - https://github.com/github/issue-labeler
 
 name: ci-label
 
 on:
   pull_request_target:
     types: [opened, edited, reopened]
-  issues:
-    types: [opened, edited, reopened]
 
 jobs:
-  issue_triage:
+  PR_triage:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/labeler@v5
         with:
-          configuration-path: .github/pull_request_labeler.yml
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: github/issue-labeler@v3.3
-        with:
           configuration-path: .github/labeler.yml
-          enable-versioned-regex: 0
-          include-title: 1
           repo-token: ${{ secrets.GITHUB_TOKEN }}
