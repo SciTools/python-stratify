@@ -17,19 +17,19 @@ repos:
         # Don't commit to master branch.
     -   id: no-commit-to-branch
 -   repo: https://github.com/psf/black
-    rev: '23.11.0'
+    rev: '23.12.1'
     hooks:
     -   id: black
         types: [file, python]
         args: [--config=./pyproject.toml, .]
 -   repo: https://github.com/PyCQA/flake8
-    rev: '6.1.0'
+    rev: '7.0.0'
     hooks:
         # Run flake8.
     -   id: flake8
         args: [--config=./.flake8]
 -   repo: https://github.com/pycqa/isort
-    rev: '5.13.0'
+    rev: '5.13.2'
     hooks:
     -   id: isort
         name: isort (python)
