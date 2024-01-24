@@ -1,29 +1,29 @@
 'Type: Dependencies':
-  - '(depende|deps|Deps|Depende)'
+- any:
+    - changed-files:
+        - any-glob-to-any-file: 'requirements/stratify.yml'
+        - any-glob-to-any-file: 'requirements/py*.yml'
+        - any-glob-to-any-file: 'requirements/locks/pypi*.txt'
+        - any-glob-to-any-file: 'requirements/locks/py*.lock'
 
 'Type: Documentation':
-  - '(documentation|Docs|Documentation|Docs)'
+- any:
+    changed-files:
+      - any-glob-to-any-file: 'index.ipynb'
+      - any-glob-to-any-file: 'README.md'
 
 'Type: GHA':
-  - '(gha|github action|GHA|Github Action|Github action)'
+- any:
+    - changed-files:
+        - any-glob-to-any-file: '.github/*.yml'
+        - any-glob-to-any-file: '.github/**/*.yml'
 
 'Type: Infrastructure':
-  - '(depende|deps|Deps|Depende|documentation|Docs|Documentation|Docs|gha|github action|GHA|Github Action|Github action|testing|tests|coverage|Testing|Tests|Coverage)'
+- any:
+    changed-files:
+      - any-glob-to-any-file: '*'
 
 'Type: Testing':
-  - '(testing|tests|coverage|Testing|Tests|Coverage)'
-
-'Type: Bug':
-  - '(bug|Bug)'
-
-'Type: Enhancement':
-  - '(feature|Feature)'
-
-'Type: Performance':
-  - '(performance|Performance)'
-
-'Type: Tech Debt':
-  - '(debt|Debt)'
-
-'Type: Question':
-  - '(question|Question)'
+- any:
+    changed-files:
+      - any-glob-to-any-file: 'src/stratify/tests/*'
