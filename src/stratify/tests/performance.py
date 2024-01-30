@@ -2,6 +2,7 @@
 Functions that may be used to measure performance of a component.
 
 """
+
 import dask.array as da
 import numpy as np
 
