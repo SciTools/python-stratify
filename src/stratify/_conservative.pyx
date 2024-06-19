@@ -1,6 +1,9 @@
 import numpy as np
 cimport numpy as np
 
+# Must be called to use C-API
+np.import_array()
+
 
 cdef calculate_weights(np.ndarray[np.float64_t, ndim=2] src_point,
                        np.ndarray[np.float64_t, ndim=2] tgt_point):
