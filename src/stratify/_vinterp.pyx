@@ -10,6 +10,8 @@ import numpy as np
 cimport cython
 cimport numpy as np
 
+# Must be called to use the C-API with Numpy.
+np.import_array()
 
 cdef extern from "numpy/npy_math.h" nogil:
     bint isnan "npy_isnan"(long double)
