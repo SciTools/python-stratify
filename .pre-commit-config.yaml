@@ -27,7 +27,7 @@ repos:
         types: [file, python]
         args: [--config=./pyproject.toml, .]
 -   repo: https://github.com/PyCQA/flake8
-    rev: '7.0.0'
+    rev: '7.1.0'
     hooks:
         # Run flake8.
     -   id: flake8
