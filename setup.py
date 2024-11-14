@@ -1,7 +1,7 @@
 import os
+from pathlib import Path
 import sys
 import warnings
-from pathlib import Path
 
 # safe to import numpy here thanks to pep518
 import numpy as np

@@ -4,8 +4,7 @@ from ._conservative import conservative_interpolation
 
 
 def interpolate_conservative(z_target, z_src, fz_src, axis=-1):
-    """
-    1d conservative interpolation across multiple dimensions.
+    """1d conservative interpolation across multiple dimensions.
 
     This function provides the ability to perform 1d interpolation on datasets
     with more than one dimension. For instance, this function can be used to
@@ -106,9 +105,9 @@ def interpolate_conservative(z_target, z_src, fz_src, axis=-1):
     fz_src_reshaped = np.transpose(fz_src, data_transpose)
     fz_src_orig = list(fz_src_reshaped.shape)
     shape = (
-        int(np.product(fz_src_reshaped.shape[: len(bdims)])),
+        int(np.prod(fz_src_reshaped.shape[: len(bdims)])),
         fz_src_reshaped.shape[len(bdims)],
-        int(np.product(fz_src_reshaped.shape[len(bdims) + 1 :])),
+        int(np.prod(fz_src_reshaped.shape[len(bdims) + 1 :])),
     )
     fz_src_reshaped = fz_src_reshaped.reshape(shape)
 
@@ -118,11 +117,11 @@ def interpolate_conservative(z_target, z_src, fz_src, axis=-1):
     z_src_reshaped = np.transpose(z_src, [axis_relative] + vdims)
     z_target_reshaped = np.transpose(z_target, [axis_relative] + vdims)
 
-    shape = int(np.product(z_src_reshaped.shape[1:-1]))
+    shape = int(np.prod(z_src_reshaped.shape[1:-1]))
     z_src_reshaped = z_src_reshaped.reshape(
         [z_src_reshaped.shape[0], shape, z_src_reshaped.shape[-1]]
     )
-    shape = int(np.product(z_target_reshaped.shape[1:-1]))
+    shape = int(np.prod(z_target_reshaped.shape[1:-1]))
     z_target_reshaped = z_target_reshaped.reshape(
         [z_target_reshaped.shape[0], shape, z_target_reshaped.shape[-1]]
     )

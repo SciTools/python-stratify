@@ -68,10 +68,10 @@ where = ["src"]
 write_to = "src/stratify/_version.py"
 local_scheme = "dirty-tag"
 
-[tool.black]
-target-version = ["py310", "py311", "py312"]
-line-length = 88
-include = '\.pyi?$'
+#[tool.black]
+#target-version = ["py310", "py311", "py312"]
+#line-length = 88
+#include = '\.pyi?$'
 
 [tool.isort]
 profile = "black"
@@ -88,3 +88,169 @@ ignore = [
 [tool.pytest.ini_options]
 addopts = "-ra -v --doctest-modules"
 testpaths = ["src/stratify"]
+
+[tool.mypy]
+disable_error_code = ["call-arg", "no-untyped-def", "no-untyped-call", "attr-defined", "misc", "index", "var-annotated", "assignment"]
+enable_error_code = ["ignore-without-code", "truthy-bool", "redundant-expr"]
+warn_unreachable = true
+strict = true
+# exclude = [
+    # No common agreement yet
+    # NOTE: these exclusions must also appear in pre-commit-config.yaml.
+    #  https://stackoverflow.com/questions/77350979/running-pre-commits-excluding-a-directory-for-multiples-hooks/77352664#77352664
+# ]
+# NOTE: Non-permanent disabling should be done via the ".mypy.ini" file.
+# disable_error_code = No common agreement yet
+
+[tool.numpydoc_validation]
+checks = [
+    "all",  # Enable all numpydoc validation rules, apart from the following:
+
+    # -> Docstring text (summary) should start in the line immediately
+    #    after the opening quotes (not in the same line, or leaving a
+    #    blank line in between)
+    "GL01",  # Permit summary line on same line as docstring opening quotes.
+
+    # -> Closing quotes should be placed in the line after the last text
+    #    in the docstring (do not close the quotes in the same line as
+    #    the text, or leave a blank line between the last text and the
+    #    quotes)
+    "GL02",  # Permit a blank line before docstring closing quotes.
+
+    # -> Double line break found; please use only one blank line to
+    #    separate sections or paragraphs, and do not leave blank lines
+    #    at the end of docstrings
+    "GL03",  # Ignoring.
+
+    "GL08",
+
+    "PR01",
+    "PR02",
+    "PR10",
+    "RT04",
+    "SS06",
+
+
+    # -> See Also section not found
+    "SA01",  # Not all docstrings require a "See Also" section.
+
+    # -> No extended summary found
+    "ES01",  # Not all docstrings require an "Extended Summary" section.
+
+    # -> No examples section found
+    "EX01",  # Not all docstrings require an "Examples" section.
+
+    # -> No Yields section found
+    "YD01",  # Not all docstrings require a "Yields" section.
+
+    # Record temporarily ignored checks below; will be reviewed at a later date:
+
+]
+exclude = [
+    '\.__eq__$',
+    '\.__ne__$',
+    '\.__repr__$',
+]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.format]
+preview = false
+
+[tool.ruff.lint]
+ignore = [
+    # NOTE: Non-permanent exclusions should be added to the ".ruff.toml" file.
+    "ERA001",
+    "RUF005",
+    "D100",
+    "B028",
+    "D101",
+    "RUF012",
+    "ANN201",
+    "D102",
+    "T201",
+    "C419",
+    "D104",
+    "D106",
+    "ANN202",
+    "SLF001",
+    "N801",
+    "D205",
+    "PT009",
+    "PT027",
+    "ANN001",
+    "ARG002",
+    "ARG003",
+    "ANN002",
+    "ANN204",
+    "D103",
+    "FBT002",
+    "ANN003",
+    "RET504",
+    "C405",
+    "PLR2004",
+
+
+    # flake8-commas (COM)
+    # https://docs.astral.sh/ruff/rules/#flake8-commas-com
+    "COM812",  # Trailing comma missing.
+    "COM819",  # Trailing comma prohibited.
+
+    # flake8-implicit-str-concat (ISC)
+    # https://docs.astral.sh/ruff/rules/single-line-implicit-string-concatenation/
+    # NOTE: This rule may cause conflicts when used with "ruff format".
+    "ISC001",  # Implicitly concatenate string literals on one line.
+    ]
+    preview = false
+    select = [
+        "ALL",
+        # list specific rules to include that is skipped using numpy convention.
+        "D212",  # Multi-line docstring summary should start at the first line
+    ]
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = true
+# Change to match specific package name:
+known-first-party = ["iris"]
+
+[tool.ruff.lint.per-file-ignores]
+# All test scripts
+
+# Change to match specific package path:
+"lib/iris/tests/*.py" = [
+    # https://docs.astral.sh/ruff/rules/undocumented-public-module/
+    "D100",  # Missing docstring in public module
+    "D205",  # 1 blank line required between summary line and description
+    "D401",  # 1 First line of docstring should be in imperative mood
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.codespell]
+ignore-words-list = "ND,Nd"
+
+[tool.repo-review]
+# These are a list of the currently failing tests to be fixed later:
+ignore = [
+    "PY004", # Has docs folder
+    "PP302", # Sets a minimum pytest to at least 6
+    "PP304", # Sets the log level in pytest
+    "PP305", # Specifies xfail_strict
+    "PP306", # Specifies strict config
+    "PP307", # Specifies strict markers
+    "PP308",
+    "PP309", # Filter warnings specified
+    "PY007", # Supports an easy task runner (nox or tox)
+    "PP003", # Does not list wheel as a build-dep
+    "PC111", # Uses blacken-docs
+    "PC140", # Uses a type checker
+    "PC160", # Uses a spell checker
+    "PC170", # Uses PyGrep hooks (only needed if rST present)
+    "PC180", # Uses a markdown formatter
+    "PC190", # Uses Ruff
+    "MY100", # Uses MyPy (pyproject config)
+    "RF001", # Has Ruff config
+    "RTD100" # Uses ReadTheDocs (pyproject config)
+]

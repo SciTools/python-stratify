@@ -33,4 +33,3 @@ pip install stratify
 
 ## License
 Stratify is licenced under a [BSD 3-Clause License](LICENSE).
-

@@ -410,7 +410,7 @@ class Test_Interpolation(unittest.TestCase):
     def test_axis_greater_than_z_src_ndim(self):
         # Ensure that axis is not unnecessarily constrained to the dimensions
         # of z_src.
-        data = np.empty((4))
+        data = np.empty(4)
         zdata = np.empty((3, 5, 4))
         axis = 2
         result = vinterp._Interpolation(data.copy(), data, zdata, axis=axis)
@@ -480,8 +480,7 @@ class Test__Interpolation_interpolate_z_target_nd(unittest.TestCase):
         assert_array_equal(result, f_source)
 
     def test_target_z_2d_over_3d_on_axis_1(self):
-        """
-        Test the case where z_target(2, 4) and z_src(3, 4) are 2d, but the
+        """Test the case where z_target(2, 4) and z_src(3, 4) are 2d, but the
         source data fz_src(3, 3, 4) is 3d. z_target and z_src cover the last
         2 dimensions of fz_src. The axis of interpolation is axis=1 wrt fz_src.
 
@@ -506,8 +505,7 @@ class Test__Interpolation_interpolate_z_target_nd(unittest.TestCase):
         assert_array_equal(result, expected)
 
     def test_target_z_2d_over_3d_on_axis_m1(self):
-        """
-        Test the case where z_target(3, 3) and z_src(3, 4) are 2d, but the
+        """Test the case where z_target(3, 3) and z_src(3, 4) are 2d, but the
         source data fz_src(3, 3, 4) is 3d. z_target and z_src cover the last
         2 dimensions of fz_src. The axis of interpolation is the default last
         dimension, axis=-1, wrt fx_src.
