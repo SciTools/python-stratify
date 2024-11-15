@@ -68,16 +68,6 @@ where = ["src"]
 write_to = "src/stratify/_version.py"
 local_scheme = "dirty-tag"
 
-#[tool.black]
-#target-version = ["py310", "py311", "py312"]
-#line-length = 88
-#include = '\.pyi?$'
-
-[tool.isort]
-profile = "black"
-skip_gitignore = "True"
-verbose = "True"
-
 [tool.check-manifest]
 ignore = [
     "src/stratify/_conservative.c",
@@ -122,13 +112,15 @@ checks = [
     #    at the end of docstrings
     "GL03",  # Ignoring.
 
-    "GL08",
+    "GL08", # The object does not have a docstring
 
-    "PR01",
-    "PR02",
-    "PR10",
-    "RT04",
-    "SS06",
+    "PR01", # Parameters {missing_params} not documented
+    "PR02", # Unknown parameters {unknown_params}
+    "PR10", # Parameter "{param_name}" requires a space before the colon separating the parameter name and type
+
+    "RT04", # Return value description should start with a capital letter
+
+    "SS06", # Summary should fit in a single line
 
 
     # -> See Also section not found
@@ -160,47 +152,86 @@ preview = false
 
 [tool.ruff.lint]
 ignore = [
-    # NOTE: Non-permanent exclusions should be added to the ".ruff.toml" file.
-    "ERA001",
-    "RUF005",
-    "D100",
-    "B028",
-    "D101",
-    "RUF012",
-    "ANN201",
-    "D102",
-    "T201",
-    "C419",
-    "D104",
-    "D106",
-    "ANN202",
-    "SLF001",
-    "N801",
-    "D205",
-    "PT009",
-    "PT027",
-    "ANN001",
-    "ARG002",
-    "ARG003",
-    "ANN002",
-    "ANN204",
-    "D103",
-    "FBT002",
-    "ANN003",
-    "RET504",
-    "C405",
-    "PLR2004",
 
+    # flake8-annotations (ANN)
+    # https://docs.astral.sh/ruff/rules/#flake8-annotations-ann
+    "ANN001", # Missing type annotation for function argument {name}
+    "ANN002", # Missing type annotation for *{name}
+    "ANN003", # Missing type annotation for **{name}
+    "ANN201", # Missing return type annotation for public function {name}
+    "ANN202", # Missing return type annotation for private function {name}
+    "ANN204", # Missing return type annotation for special method {name}
+
+    "ARG002", # Unused method argument: {name}
+    "ARG003", # Unused class method argument: {name}
+
+    # flake8-bugbear (B)
+    # https://docs.astral.sh/ruff/rules/#flake8-bugbear-b
+    "B028", # No explicit stacklevel keyword argument found
+
+    # flake8-comprehensions (C4)
+    # https://docs.astral.sh/ruff/rules/#flake8-comprehensions-c4
+    "C405", # Unnecessary {obj_type} literal (rewrite as a set literal)
+    "C419", # Unnecessary list comprehension
 
     # flake8-commas (COM)
     # https://docs.astral.sh/ruff/rules/#flake8-commas-com
     "COM812",  # Trailing comma missing.
     "COM819",  # Trailing comma prohibited.
 
+    # pydocstyle (D)
+    # https://docs.astral.sh/ruff/rules/#pydocstyle-d
+    "D100", # Missing docstring in public module
+    "D101", # Missing docstring in public class
+    "D102", # Missing docstring in public method
+    "D103", # Missing docstring in public function
+    "D104", # Missing docstring in public package
+    "D106", # Missing docstring in public nested class
+    "D205", # 1 blank line required between summary line and description
+
+    # https://docs.astral.sh/ruff/rules/#eradicate-era
+    # https://docs.astral.sh/ruff/rules/#eradicate-era
+    "ERA001", # Found commented-out code
+
+    # flake8-boolean-trap (FBT)
+    # https://docs.astral.sh/ruff/rules/#flake8-boolean-trap-fbt
+    "FBT002", # Boolean default positional argument in function definition
+
     # flake8-implicit-str-concat (ISC)
     # https://docs.astral.sh/ruff/rules/single-line-implicit-string-concatenation/
     # NOTE: This rule may cause conflicts when used with "ruff format".
     "ISC001",  # Implicitly concatenate string literals on one line.
+
+    # pep8-naming (N)
+    # https://docs.astral.sh/ruff/rules/#pep8-naming-n
+    "N801", # Class name {name} should use CapWords convention
+
+    # Refactor (R)
+    # https://docs.astral.sh/ruff/rules/#refactor-r
+    "PLR2004", # Magic value used in comparison, consider replacing {value} with a constant variable
+
+    # flake8-pytest-style (PT)
+    # https://docs.astral.sh/ruff/rules/#flake8-pytest-style-pt
+    "PT009", # Use a regular assert instead of unittest-style {assertion}
+    "PT027", # Use pytest.raises instead of unittest-style {assertion}
+
+    # flake8-return (RET)
+    # https://docs.astral.sh/ruff/rules/#flake8-return-ret
+    "RET504", # Unnecessary assignment to {name} before return statement
+
+    # Ruff-specific rules (RUF)
+    # https://docs.astral.sh/ruff/rules/#ruff-specific-rules-ruf
+    "RUF005", # Consider {expression} instead of concatenation
+    "RUF012", # Mutable class attributes should be annotated with typing.ClassVar
+
+    # flake8-self (SLF)
+    # https://docs.astral.sh/ruff/rules/#flake8-self-slf
+    "SLF001", # Private member accessed: {access}
+
+    # flake8-print (T20)
+    # https://docs.astral.sh/ruff/rules/#flake8-print-t20
+    "T201", # print found
+
     ]
     preview = false
     select = [
@@ -240,7 +271,6 @@ ignore = [
     "PP305", # Specifies xfail_strict
     "PP306", # Specifies strict config
     "PP307", # Specifies strict markers
-    "PP308",
     "PP309", # Filter warnings specified
     "PY007", # Supports an easy task runner (nox or tox)
     "PP003", # Does not list wheel as a build-dep
