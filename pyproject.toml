@@ -84,13 +84,6 @@ disable_error_code = ["call-arg", "no-untyped-def", "no-untyped-call", "attr-def
 enable_error_code = ["ignore-without-code", "truthy-bool", "redundant-expr"]
 warn_unreachable = true
 strict = true
-# exclude = [
-    # No common agreement yet
-    # NOTE: these exclusions must also appear in pre-commit-config.yaml.
-    #  https://stackoverflow.com/questions/77350979/running-pre-commits-excluding-a-directory-for-multiples-hooks/77352664#77352664
-# ]
-# NOTE: Non-permanent disabling should be done via the ".mypy.ini" file.
-# disable_error_code = No common agreement yet
 
 [tool.numpydoc_validation]
 checks = [
@@ -190,7 +183,6 @@ ignore = [
     "D205", # 1 blank line required between summary line and description
 
     # https://docs.astral.sh/ruff/rules/#eradicate-era
-    # https://docs.astral.sh/ruff/rules/#eradicate-era
     "ERA001", # Found commented-out code
 
     # flake8-boolean-trap (FBT)
@@ -275,12 +267,7 @@ ignore = [
     "PY007", # Supports an easy task runner (nox or tox)
     "PP003", # Does not list wheel as a build-dep
     "PC111", # Uses blacken-docs
-    "PC140", # Uses a type checker
-    "PC160", # Uses a spell checker
     "PC170", # Uses PyGrep hooks (only needed if rST present)
     "PC180", # Uses a markdown formatter
-    "PC190", # Uses Ruff
-    "MY100", # Uses MyPy (pyproject config)
-    "RF001", # Has Ruff config
     "RTD100" # Uses ReadTheDocs (pyproject config)
 ]
