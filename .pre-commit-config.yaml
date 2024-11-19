@@ -1,8 +1,11 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
+# See https://pre-commit.ci/#configuration
+# See https://github.com/scientific-python/cookie#sp-repo-review
 
 ci:
-  autoupdate_commit_msg: "chore: update pre-commit hooks"
+    autofix_prs: false
+    autoupdate_commit_msg: "chore: update pre-commit hooks"
 
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
@@ -18,27 +21,43 @@ repos:
     -   id: check-merge-conflict
         # Check for debugger imports and py37+ `breakpoint()` calls in Python source.
     -   id: debug-statements
+        # Check TOML file syntax.
+    - id: check-toml
+        # Check YAML file syntax.
+    - id: check-yaml
+        # Makes sure files end in a newline and only a newline.
+        # Duplicates Ruff W292 but also works on non-Python files.
+    - id: end-of-file-fixer
+        # Replaces or checks mixed line ending.
+    - id: mixed-line-ending
         # Don't commit to master branch.
     -   id: no-commit-to-branch
--   repo: https://github.com/psf/black-pre-commit-mirror
-    rev: '24.10.0'
+      # Trims trailing whitespace.
+      # Duplicates Ruff W291 but also works on non-Python files.
+    -   id: trailing-whitespace
+
+
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: "v0.7.3"
     hooks:
-    -   id: black
+    -   id: ruff
         types: [file, python]
-        args: [--config=./pyproject.toml, .]
--   repo: https://github.com/PyCQA/flake8
-    rev: '7.1.1'
+        args: [--fix, --show-fixes]
+    -   id: ruff-format
+        types: [file, python]
+
+-   repo: https://github.com/codespell-project/codespell
+    rev: "v2.3.0"
     hooks:
-        # Run flake8.
-    -   id: flake8
-        args: [--config=./.flake8]
+    -   id: codespell
+        types_or: [asciidoc, python, markdown, rst]
+        additional_dependencies: [tomli]
+
+
+
 -   repo: https://github.com/pycqa/isort
     rev: '5.13.2'
     hooks:
-    -   id: isort
-        name: isort (python)
-        types: [file, python]
-        args: [--filter-files]
     -   id: isort
         name: isort (cython)
         types: [file, cython]
@@ -49,3 +68,28 @@ repos:
     hooks:
     - id: sort-all
       types: [file, python]
+
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: 'v1.13.0'
+    hooks:
+    -   id: mypy
+        exclude: 'noxfile\.py|docs/conf\.py'
+
+-   repo: https://github.com/abravalheri/validate-pyproject
+    # More exhaustive than Ruff RUF200.
+    rev: "v0.23"
+    hooks:
+    - id: validate-pyproject
+
+-   repo: https://github.com/scientific-python/cookie
+    rev: 2024.08.19
+    hooks:
+    - id: sp-repo-review
+      additional_dependencies: ["repo-review[cli]"]
+      args: ["--show=errskip"]
+
+-   repo: https://github.com/numpy/numpydoc
+    rev: v1.8.0
+    hooks:
+      - id: numpydoc-validation
+        types: [file, python]

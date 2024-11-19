@@ -54,7 +54,7 @@ class Test1D(unittest.TestCase):
         res = bounded_vinterp.interpolate_conservative(
             target_bounds, self.bounds, data, axis=0
         )
-        target_data = np.ones((3)) * 2
+        target_data = np.ones(3) * 2
         assert_array_equal(res, target_data)
 
     def test_source_with_nans(self):
@@ -67,7 +67,7 @@ class Test1D(unittest.TestCase):
         res = bounded_vinterp.interpolate_conservative(
             target_bounds, self.bounds, data, axis=0
         )
-        target_data = np.ones((12)) * 0.5
+        target_data = np.ones(12) * 0.5
         target_data[:2] = np.nan
         target_data[-4:] = np.nan
         assert_array_equal(res, target_data)

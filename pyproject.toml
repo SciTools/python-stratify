@@ -68,16 +68,6 @@ where = ["src"]
 write_to = "src/stratify/_version.py"
 local_scheme = "dirty-tag"
 
-[tool.black]
-target-version = ["py310", "py311", "py312"]
-line-length = 88
-include = '\.pyi?$'
-
-[tool.isort]
-profile = "black"
-skip_gitignore = "True"
-verbose = "True"
-
 [tool.check-manifest]
 ignore = [
     "src/stratify/_conservative.c",
@@ -88,3 +78,196 @@ ignore = [
 [tool.pytest.ini_options]
 addopts = "-ra -v --doctest-modules"
 testpaths = ["src/stratify"]
+
+[tool.mypy]
+disable_error_code = ["call-arg", "no-untyped-def", "no-untyped-call", "attr-defined", "misc", "index", "var-annotated", "assignment"]
+enable_error_code = ["ignore-without-code", "truthy-bool", "redundant-expr"]
+warn_unreachable = true
+strict = true
+
+[tool.numpydoc_validation]
+checks = [
+    "all",  # Enable all numpydoc validation rules, apart from the following:
+
+    # -> Docstring text (summary) should start in the line immediately
+    #    after the opening quotes (not in the same line, or leaving a
+    #    blank line in between)
+    "GL01",  # Permit summary line on same line as docstring opening quotes.
+
+    # -> Closing quotes should be placed in the line after the last text
+    #    in the docstring (do not close the quotes in the same line as
+    #    the text, or leave a blank line between the last text and the
+    #    quotes)
+    "GL02",  # Permit a blank line before docstring closing quotes.
+
+    # -> Double line break found; please use only one blank line to
+    #    separate sections or paragraphs, and do not leave blank lines
+    #    at the end of docstrings
+    "GL03",  # Ignoring.
+
+    "GL08", # The object does not have a docstring
+
+    "PR01", # Parameters {missing_params} not documented
+    "PR02", # Unknown parameters {unknown_params}
+    "PR10", # Parameter "{param_name}" requires a space before the colon separating the parameter name and type
+
+    "RT04", # Return value description should start with a capital letter
+
+    "SS06", # Summary should fit in a single line
+
+
+    # -> See Also section not found
+    "SA01",  # Not all docstrings require a "See Also" section.
+
+    # -> No extended summary found
+    "ES01",  # Not all docstrings require an "Extended Summary" section.
+
+    # -> No examples section found
+    "EX01",  # Not all docstrings require an "Examples" section.
+
+    # -> No Yields section found
+    "YD01",  # Not all docstrings require a "Yields" section.
+
+    # Record temporarily ignored checks below; will be reviewed at a later date:
+
+]
+exclude = [
+    '\.__eq__$',
+    '\.__ne__$',
+    '\.__repr__$',
+]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.format]
+preview = false
+
+[tool.ruff.lint]
+ignore = [
+
+    # flake8-annotations (ANN)
+    # https://docs.astral.sh/ruff/rules/#flake8-annotations-ann
+    "ANN001", # Missing type annotation for function argument {name}
+    "ANN002", # Missing type annotation for *{name}
+    "ANN003", # Missing type annotation for **{name}
+    "ANN201", # Missing return type annotation for public function {name}
+    "ANN202", # Missing return type annotation for private function {name}
+    "ANN204", # Missing return type annotation for special method {name}
+
+    "ARG002", # Unused method argument: {name}
+    "ARG003", # Unused class method argument: {name}
+
+    # flake8-bugbear (B)
+    # https://docs.astral.sh/ruff/rules/#flake8-bugbear-b
+    "B028", # No explicit stacklevel keyword argument found
+
+    # flake8-comprehensions (C4)
+    # https://docs.astral.sh/ruff/rules/#flake8-comprehensions-c4
+    "C405", # Unnecessary {obj_type} literal (rewrite as a set literal)
+    "C419", # Unnecessary list comprehension
+
+    # flake8-commas (COM)
+    # https://docs.astral.sh/ruff/rules/#flake8-commas-com
+    "COM812",  # Trailing comma missing.
+    "COM819",  # Trailing comma prohibited.
+
+    # pydocstyle (D)
+    # https://docs.astral.sh/ruff/rules/#pydocstyle-d
+    "D100", # Missing docstring in public module
+    "D101", # Missing docstring in public class
+    "D102", # Missing docstring in public method
+    "D103", # Missing docstring in public function
+    "D104", # Missing docstring in public package
+    "D106", # Missing docstring in public nested class
+    "D205", # 1 blank line required between summary line and description
+
+    # https://docs.astral.sh/ruff/rules/#eradicate-era
+    "ERA001", # Found commented-out code
+
+    # flake8-boolean-trap (FBT)
+    # https://docs.astral.sh/ruff/rules/#flake8-boolean-trap-fbt
+    "FBT002", # Boolean default positional argument in function definition
+
+    # flake8-implicit-str-concat (ISC)
+    # https://docs.astral.sh/ruff/rules/single-line-implicit-string-concatenation/
+    # NOTE: This rule may cause conflicts when used with "ruff format".
+    "ISC001",  # Implicitly concatenate string literals on one line.
+
+    # pep8-naming (N)
+    # https://docs.astral.sh/ruff/rules/#pep8-naming-n
+    "N801", # Class name {name} should use CapWords convention
+
+    # Refactor (R)
+    # https://docs.astral.sh/ruff/rules/#refactor-r
+    "PLR2004", # Magic value used in comparison, consider replacing {value} with a constant variable
+
+    # flake8-pytest-style (PT)
+    # https://docs.astral.sh/ruff/rules/#flake8-pytest-style-pt
+    "PT009", # Use a regular assert instead of unittest-style {assertion}
+    "PT027", # Use pytest.raises instead of unittest-style {assertion}
+
+    # flake8-return (RET)
+    # https://docs.astral.sh/ruff/rules/#flake8-return-ret
+    "RET504", # Unnecessary assignment to {name} before return statement
+
+    # Ruff-specific rules (RUF)
+    # https://docs.astral.sh/ruff/rules/#ruff-specific-rules-ruf
+    "RUF005", # Consider {expression} instead of concatenation
+    "RUF012", # Mutable class attributes should be annotated with typing.ClassVar
+
+    # flake8-self (SLF)
+    # https://docs.astral.sh/ruff/rules/#flake8-self-slf
+    "SLF001", # Private member accessed: {access}
+
+    # flake8-print (T20)
+    # https://docs.astral.sh/ruff/rules/#flake8-print-t20
+    "T201", # print found
+
+    ]
+    preview = false
+    select = [
+        "ALL",
+        # list specific rules to include that is skipped using numpy convention.
+        "D212",  # Multi-line docstring summary should start at the first line
+    ]
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = true
+# Change to match specific package name:
+known-first-party = ["iris"]
+
+[tool.ruff.lint.per-file-ignores]
+# All test scripts
+
+# Change to match specific package path:
+"lib/iris/tests/*.py" = [
+    # https://docs.astral.sh/ruff/rules/undocumented-public-module/
+    "D100",  # Missing docstring in public module
+    "D205",  # 1 blank line required between summary line and description
+    "D401",  # 1 First line of docstring should be in imperative mood
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.codespell]
+ignore-words-list = "ND,Nd"
+
+[tool.repo-review]
+# These are a list of the currently failing tests to be fixed later:
+ignore = [
+    "PY004", # Has docs folder
+    "PP302", # Sets a minimum pytest to at least 6
+    "PP304", # Sets the log level in pytest
+    "PP305", # Specifies xfail_strict
+    "PP306", # Specifies strict config
+    "PP307", # Specifies strict markers
+    "PP309", # Filter warnings specified
+    "PY007", # Supports an easy task runner (nox or tox)
+    "PP003", # Does not list wheel as a build-dep
+    "PC111", # Uses blacken-docs
+    "PC170", # Uses PyGrep hooks (only needed if rST present)
+    "PC180", # Uses a markdown formatter
+    "RTD100" # Uses ReadTheDocs (pyproject config)
+]
