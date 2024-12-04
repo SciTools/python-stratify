@@ -69,7 +69,6 @@ jobs:
 
     - name: "stratify tests (py${{ matrix.python-version }})"
       run: |
-        python setup.py build_ext --inplace
         python -m pip install --editable .
         pytest ${{ matrix.cov-report }}
         ${{ matrix.codecov }}
