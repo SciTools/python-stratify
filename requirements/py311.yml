@@ -11,7 +11,7 @@ dependencies:
   - setuptools-scm
 
 # Core dependencies.
-  - numpy
+  - numpy>=2
   - cython
 
 # Optional dependencies.
