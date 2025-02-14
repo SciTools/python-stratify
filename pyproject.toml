@@ -2,7 +2,7 @@
 # Defined by PEP 518
 requires = [
   "Cython",
-  "oldest-supported-numpy",
+  "numpy>=2",
   "setuptools>=61",
   "setuptools_scm[toml]>=7",
   "wheel",
