@@ -7,8 +7,8 @@ dependencies:
   - python=3.11
 
 # Setup dependencies.
-  - setuptools
-  - setuptools-scm
+  - setuptools>=77.0.3
+  - setuptools-scm>=8
 
 # Core dependencies.
   - numpy>=2
