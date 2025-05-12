@@ -3,8 +3,8 @@
 requires = [
   "Cython",
   "numpy>=2",
-  "setuptools>=61",
-  "setuptools_scm[toml]>=7",
+  "setuptools>=77.0.3",
+  "setuptools_scm[toml]>=8",
   "wheel",
 ]
 # Defined by PEP 517
@@ -17,7 +17,6 @@ authors = [
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: BSD License",
     "Operating System :: POSIX",
     "Operating System :: POSIX :: Linux",
     "Operating System :: Unix",
@@ -44,7 +43,8 @@ keywords = [
     "python",
     "ocean-science",
 ]
-license = {text = "BSD-3-Clause"}
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
 name = "stratify"
 requires-python = ">=3.10"
 
@@ -53,7 +53,6 @@ Code = "https://github.com/SciTools-incubator/python-stratify"
 Issues = "https://github.com/SciTools-incubator/python-stratify/issues"
 
 [tool.setuptools]
-license-files = ["LICENSE"]
 zip-safe = false
 
 [tool.setuptools.dynamic]
