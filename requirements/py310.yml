@@ -7,12 +7,12 @@ dependencies:
   - python=3.10
 
 # Setup dependencies.
-  - setuptools
-  - setuptools-scm
+  - setuptools>=77.0.3
+  - setuptools-scm>=8
 
 # Core dependencies.
-  - numpy==1.26.4
-  - cython
+  - numpy>=2
+  - cython<3.1.0
 
 # Optional dependencies.
   - dask
