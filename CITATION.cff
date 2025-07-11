@@ -26,6 +26,7 @@ authors:
 - family-names: "Yeo"
   given-names: "Martin"
   orcid: "https://orcid.org/0009-0000-6857-560X"
+- name: "Python-Stratify contributors"
 abstract: "Interpolation for restratification, particularly useful for Nd vertical interpolation of atmospheric and oceanographic datasets"
 license: "BSD-3-Clause"
 license-url: "https://spdx.org/licenses/BSD-3-Clause.html"
