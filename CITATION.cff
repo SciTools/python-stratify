@@ -1,5 +1,6 @@
 cff-version: 1.2.0
 message: "If Python-Stratify played an important part in your research then please add us to your reference list by using the references below."
+title: "python-stratify"
 authors:
 - family-names: "Elson"
   given-names: "Phil"
@@ -25,7 +26,6 @@ authors:
 - family-names: "Yeo"
   given-names: "Martin"
   orcid: "https://orcid.org/0009-0000-6857-560X"
-title: "python-stratify"
 abstract: "Interpolation for restratification, particularly useful for Nd vertical interpolation of atmospheric and oceanographic datasets"
 license: "BSD-3-Clause"
 license-url: "https://spdx.org/licenses/BSD-3-Clause.html"
