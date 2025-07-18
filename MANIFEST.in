@@ -23,6 +23,7 @@ recursive-include src *.py *.pyx
 #---------
 # SECTION: requirements
 prune requirements
+recursive-include requirements *.txt
     # principles:
     #    include just requirements-level info, not lock files
     # hints:
