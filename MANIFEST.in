@@ -8,7 +8,7 @@
 #---------
 # SECTION: main code sources
 #
-recursive-include src *.py *.pyx
+recursive-include src *.c *.py *.pyx *.so
     # principles:
     #    - *no* "prune" command is used
     #    - use "include-recursive", by relevant file extensions
@@ -29,7 +29,6 @@ recursive-include requirements *.txt
     # hints:
     #    - not all projects include requirements, but they can be drawn in anyway by dynamic dependencies
     #        in the setuptools build process, linked via config in pyproject.toml
-    #    - for some repos, the *.txt are actually lockfiles.  This probably needs fixing.
 
 #---------
 # SECTION: root files
@@ -69,12 +68,9 @@ prune .github
 prune .nox
 prune .tox
 prune .coverage
+prune docs
 # (2) top-level files to omit
-exclude Dockerfile
-exclude codecov.yml
 exclude .coveragerc
-exclude index.ipynb
-exclude summary.png
 # (3) file types (path patterns) to skip everywhere
 global-exclude *.py[cod]
 global-exclude __pycache__
@@ -86,3 +82,11 @@ global-exclude __pycache__
     #        previous sections -- such as python compiler cache files
     #    - can include this section as **boilerplate** :
     #        - won't all exist in every repo, but including them all does no harm
+
+#
+#=================================
+# Local Python-Stratify-specific settings
+#
+exclude Dockerfile
+exclude index.ipynb
+exclude summary.png
