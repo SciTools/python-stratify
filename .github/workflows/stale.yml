@@ -19,7 +19,7 @@ jobs:
       DAYS_BEFORE_CLOSE: 28
 
     steps:
-      - uses: actions/stale@v9
+      - uses: actions/stale@v10
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
