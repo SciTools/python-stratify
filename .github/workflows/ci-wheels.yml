@@ -43,12 +43,12 @@ jobs:
             arch: "AMD64"
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
     - name: "build ${{ matrix.os }} (${{ matrix.arch }}) wheels"
-      uses: pypa/cibuildwheel@v3.3.0
+      uses: pypa/cibuildwheel@v3.3.1
       env:
         CIBW_SKIP: "cp39-* cp310-* cp311-* pp* *-musllinux*"
         CIBW_ARCHS: ${{ matrix.arch }}
@@ -59,7 +59,7 @@ jobs:
         CIBW_TEST_COMMAND: >
           python -m pytest --pyargs stratify
 
-    - uses: actions/upload-artifact@v5
+    - uses: actions/upload-artifact@v6
       with:
         name: pypi-${{ matrix.os }}-${{ matrix.arch }}-artifact
         path: ${{ github.workspace }}/wheelhouse/*.whl
@@ -69,7 +69,7 @@ jobs:
     name: "Build sdist"
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
 
@@ -78,7 +78,7 @@ jobs:
       run: |
         pipx run build --sdist
 
-    - uses: actions/upload-artifact@v5
+    - uses: actions/upload-artifact@v6
       with:
         name: pypi-sdist
         path: ${{ github.workspace }}/dist/*.tar.gz
@@ -89,7 +89,7 @@ jobs:
     name: "Show artifacts"
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       with:
         merge-multiple: true
         path: ${{ github.workspace }}/dist
@@ -106,7 +106,7 @@ jobs:
     # upload to Test PyPI for every commit on main branch
     if: github.event_name == 'push' && github.event.ref == 'refs/heads/main'
     steps:
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       with:
         merge-multiple: true
         path: ${{ github.workspace }}/dist
@@ -127,7 +127,7 @@ jobs:
     # upload to PyPI for every tag starting with 'v'
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
     steps:
-    - uses: actions/download-artifact@v6
+    - uses: actions/download-artifact@v7
       with:
         merge-multiple: true
         path: ${{ github.workspace }}/dist
