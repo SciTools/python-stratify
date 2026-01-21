@@ -77,6 +77,7 @@ ignore = [
 [tool.pytest.ini_options]
 addopts = "-ra -v --doctest-modules"
 testpaths = ["src/stratify"]
+log_level = "INFO"
 
 [tool.mypy]
 disable_error_code = ["call-arg", "no-untyped-def", "no-untyped-call", "attr-defined", "misc", "index", "var-annotated", "assignment"]
@@ -254,8 +255,12 @@ convention = "numpy"
 ignore-words-list = "ND,Nd"
 
 [tool.repo-review]
-# These are a list of the currently failing tests to be fixed later:
+
 ignore = [
+    # https://learn.scientific-python.org/development/guides/packaging-simple#PP006
+    "PP006", # Uses dev dependency group
+
+    # These are a list of the currently failing tests to be fixed later:
     "PY004", # Has docs folder
     "PP302", # Sets a minimum pytest to at least 6
     "PP304", # Sets the log level in pytest
