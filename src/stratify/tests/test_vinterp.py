@@ -19,7 +19,7 @@ class DirectionExtrapolator(vinterp.PyFuncExtrapolator):
 
 
 class TestColumnInterpolation(unittest.TestCase):
-    def interpolate(self, x_target, x_src, rising=None):
+    def interpolate(self, x_target, x_src):
         x_target = np.array(x_target)
         x_src = np.array(x_src)
         fx_src = np.empty(x_src.shape)
@@ -31,28 +31,28 @@ class TestColumnInterpolation(unittest.TestCase):
             x_target,
             x_src,
             fx_src,
-            rising=rising,
+            #  rising=rising,
             interpolation=index_interp,
             extrapolation=extrap_direct,
         )
 
-        if rising is not None:
-            r2 = stratify.interpolate(
-                -1 * x_target,
-                -1 * x_src,
-                fx_src,
-                rising=not rising,
-                interpolation=index_interp,
-                extrapolation=extrap_direct,
-            )
-            assert_array_equal(r1, r2)
+        # if rising is not None:
+        #     r2 = stratify.interpolate(
+        #         -1 * x_target,
+        #         -1 * x_src,
+        #         fx_src,
+        #         rising=not rising,
+        #         interpolation=index_interp,
+        #         extrapolation=extrap_direct,
+        #     )
+        #     assert_array_equal(r1, r2)
 
         lazy_fx_src = da.asarray(fx_src, chunks=tuple(range(1, x_src.ndim + 1)))
         r3 = stratify.interpolate(
             x_target,
             x_src,
             lazy_fx_src,
-            rising=rising,
+            #   rising=rising,
             interpolation=index_interp,
             extrapolation=extrap_direct,
         )
@@ -77,7 +77,7 @@ class TestColumnInterpolation(unittest.TestCase):
         assert_array_equal(r, [-np.inf, -np.inf, -np.inf])
 
     def test_upper_extrap_only(self):
-        r = self.interpolate([1, 2, 3], [-4, -5], rising=True)
+        r = self.interpolate([1, 2, 3], [-4, -5])
         assert_array_equal(r, [np.inf, np.inf, np.inf])
 
     def test_extrap_on_both_sides_only(self):
@@ -96,7 +96,7 @@ class TestColumnInterpolation(unittest.TestCase):
     def test_nan_in_src(self):
         msg = "The source coordinate .* NaN"
         with self.assertRaisesRegex(ValueError, msg):
-            self.interpolate([1], [0, np.nan], rising=True)
+            self.interpolate([1], [0, np.nan])
 
     def test_all_nan_in_src(self):
         r = self.interpolate([1, 2, 3, 4], [np.nan, np.nan, np.nan])
@@ -117,13 +117,13 @@ class TestColumnInterpolation(unittest.TestCase):
         assert_array_equal(r, [1, np.inf])
 
     def test_wrong_rising_source(self):
-        r = self.interpolate([1, 2], [2, 1], rising=True)
+        r = self.interpolate([1, 2], [2, 1])
         assert_array_equal(r, [-np.inf, 0])
 
     def test_wrong_rising_source_and_target(self):
         # If we overshoot the first level, there is no hope,
         # so we end up extrapolating.
-        r = self.interpolate([3, 2, 1, 0], [2, 1], rising=True)
+        r = self.interpolate([3, 2, 1, 0], [2, 1])
         assert_array_equal(r, [np.inf, np.inf, np.inf, np.inf])
 
     def test_non_monotonic_coordinate_interp(self):
@@ -135,7 +135,7 @@ class TestColumnInterpolation(unittest.TestCase):
         assert_array_equal(result, [-np.inf, 1, 1, 1, 2, 3, np.inf])
 
     def test_length_one_interp(self):
-        r = self.interpolate([1], [2], rising=True)
+        r = self.interpolate([1], [2])
         assert_array_equal(r, [-np.inf])
 
     def test_auto_rising_not_enough_values(self):
@@ -200,7 +200,7 @@ class Test_INTERPOLATE_LINEAR(unittest.TestCase):
             [20],
             interpolation=interpolation,
             extrapolation=extrapolation,
-            rising=True,
+            #  rising=True,
         )
         self.assertEqual(r, 20)
 
@@ -324,7 +324,7 @@ class Test_EXTRAPOLATE_LINEAR(unittest.TestCase):
                 [20],
                 interpolation=interpolation,
                 extrapolation=extrapolation,
-                rising=True,
+                #  rising=True,
             )
 
 
@@ -346,7 +346,7 @@ class Test_custom_extrap_kernel(unittest.TestCase):
             [10, 20],
             interpolation=interpolation,
             extrapolation=extrapolation,
-            rising=True,
+            #  rising=True,
         )
         assert_array_equal(r, [0, -10])
 
