@@ -113,7 +113,7 @@ class TestColumnInterpolation(unittest.TestCase):
         assert_array_equal(r, [])
 
     def test_wrong_rising_target(self):
-        r = self.interpolate([1, 2], [2, 1])
+        r = self.interpolate([2, 1], [1, 2])
         assert_array_equal(r, [0.0, 1.0])
 
     def test_wrong_rising_source(self):

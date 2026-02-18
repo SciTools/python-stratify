@@ -520,7 +520,7 @@ def interpolate(z_target, z_src, fz_src, axis=-1, rising=None,
     # Dask array
     import dask.array as da
 
-    # Ensure z_target is an array that runs in the same direction as z_src otherwise flip z_src and fz_src.
+    # Ensure z_target is an array.
     if not isinstance(z_target, (np.ndarray, da.Array)):
       z_target = np.array(z_target)
 
@@ -622,6 +622,10 @@ cdef class _Interpolation(object):
             emsg = 'Shape for z_src {} is not a subset of fz_src {}.'
             raise ValueError(emsg.format(z_src.shape, fz_src.shape))
 
+        # If rising is not provided, work it out from the first two values of z_src.
+        # Then do the same thing for the target, and if the target is rising in the
+        # opposite direction to the source, then we flip the source and the source data
+        # on the interpolation axis.
         if rising is None:
             if z_src.shape[zp_axis] < 2:
                 raise ValueError('The rising keyword must be defined when '
