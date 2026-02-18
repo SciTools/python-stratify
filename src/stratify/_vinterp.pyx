@@ -639,13 +639,13 @@ cdef class _Interpolation(object):
             tgt_rising = rising
         else:
             if z_target.ndim == 1:
-                first_two_t = z_target[:2]
+                tgt_first_two = z_target[:2]
             else:
-                tgt_axis = tgt_axis % z_target.ndim
+                tgt_axis = axis % z_target.ndim
                 tgt_indexer = [slice(None)] * z_target.ndim
-                tgt_indexer[axis] = slice(0, 2)
-                tgt_first_two = z_tgt[tuple(indexer)].ravel()[:2]
-            tgt_rising = tgt_first_two[0] <= tgt_first_two_t[1]
+                tgt_indexer[tgt_axis] = slice(0, 2)
+                tgt_first_two = z_target[tuple(tgt_indexer)].ravel()[:2]
+            tgt_rising = tgt_first_two[0] <= tgt_first_two[1]
         if tgt_rising != rising:
             z_src = np.flip(z_src, axis=zp_axis)
             fz_src = np.flip(fz_src, axis=zp_axis)
