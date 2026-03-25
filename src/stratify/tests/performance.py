@@ -6,7 +6,7 @@ import numpy as np
 import stratify
 
 
-def src_data(shape=(400, 500, 100), lazy=False):
+def src_data(shape=(400, 500, 100)):
     z = np.tile(np.linspace(0, 100, shape[-1]), np.prod(shape[:2])).reshape(shape)
     if lazy:
         fz = da.arange(np.prod(shape), dtype=np.float64).reshape(shape)
