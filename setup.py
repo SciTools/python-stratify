@@ -11,7 +11,7 @@ try:
     from Cython.Build import cythonize  # isort:skip
 except ImportError:
     wmsg = "Cython unavailable, unable to build stratify extensions!"
-    warnings.warn(wmsg)
+    warnings.warn(wmsg, stacklevel=2)
     cythonize = None
 
 
@@ -53,7 +53,7 @@ if cythonize and cython_coverage_enabled:
         [
             ("CYTHON_TRACE", "1"),
             ("CYTHON_TRACE_NOGIL", "1"),
-        ]
+        ],
     )
     cython_directives.update({"linetrace": True})
     if FLAG_COVERAGE in sys.argv:
@@ -70,9 +70,11 @@ for fname in SRC_DIR.glob(f"{PACKAGE_NAME}/*.pyx"):
     )
     extensions.append(extension)
 
-if cythonize and not any([arg in CMDS_NOCYTHONIZE for arg in sys.argv]):
+if cythonize and not any(arg in CMDS_NOCYTHONIZE for arg in sys.argv):
     extensions = cythonize(
-        extensions, compiler_directives=cython_directives, language_level=3
+        extensions,
+        compiler_directives=cython_directives,
+        language_level=3,
     )
 
 cmdclass = {"clean_cython": CleanCython}

@@ -2,6 +2,7 @@ import unittest
 
 import numpy as np
 from numpy.testing import assert_array_equal
+import pytest
 
 import stratify._bounded_vinterp as bounded_vinterp
 
@@ -24,7 +25,7 @@ class Test1D(unittest.TestCase):
             [
                 np.arange(start, stop - step, step),
                 np.arange(start + step, stop, step),
-            ]
+            ],
         )
         bounds = bounds.transpose((1, 0))
         return bounds.copy()
@@ -32,7 +33,10 @@ class Test1D(unittest.TestCase):
     def test_target_half_resolution(self):
         target_bounds = self.gen_bounds(0, 7, 2)
         res = bounded_vinterp.interpolate_conservative(
-            target_bounds, self.bounds, self.data, axis=1
+            target_bounds,
+            self.bounds,
+            self.data,
+            axis=1,
         )
         target_data = np.ones((4, 3)) * 2
         assert_array_equal(res, target_data)
@@ -40,7 +44,10 @@ class Test1D(unittest.TestCase):
     def test_target_double_resolution(self):
         target_bounds = self.gen_bounds(0, 6.5, 0.5)
         res = bounded_vinterp.interpolate_conservative(
-            target_bounds, self.bounds, self.data, axis=1
+            target_bounds,
+            self.bounds,
+            self.data,
+            axis=1,
         )
         target_data = np.ones((4, 12)) * 0.5
         assert_array_equal(res, target_data)
@@ -52,7 +59,10 @@ class Test1D(unittest.TestCase):
         data = self.data[0]
         target_bounds = self.gen_bounds(0, 7, 2)
         res = bounded_vinterp.interpolate_conservative(
-            target_bounds, self.bounds, data, axis=0
+            target_bounds,
+            self.bounds,
+            data,
+            axis=0,
         )
         target_data = np.ones(3) * 2
         assert_array_equal(res, target_data)
@@ -65,7 +75,10 @@ class Test1D(unittest.TestCase):
         data[0] = data[-2:] = np.nan
         target_bounds = self.gen_bounds(0, 6.5, 0.5)
         res = bounded_vinterp.interpolate_conservative(
-            target_bounds, self.bounds, data, axis=0
+            target_bounds,
+            self.bounds,
+            data,
+            axis=0,
         )
         target_data = np.ones(12) * 0.5
         target_data[:2] = np.nan
@@ -78,7 +91,10 @@ class Test1D(unittest.TestCase):
         source_bounds = self.gen_bounds(0, 7, 1)
         target_bounds = self.gen_bounds(0, 8, 1)
         res = bounded_vinterp.interpolate_conservative(
-            target_bounds, source_bounds, self.data, axis=1
+            target_bounds,
+            source_bounds,
+            self.data,
+            axis=1,
         )
         target_data = np.ones((4, 7))
         target_data[:, -1] = np.nan
@@ -91,10 +107,13 @@ class Test1D(unittest.TestCase):
         target_bounds = self.gen_bounds(0, 8, 1)
         data = np.ones((4, 4))
         res = bounded_vinterp.interpolate_conservative(
-            target_bounds, source_bounds, data, axis=1
+            target_bounds,
+            source_bounds,
+            data,
+            axis=1,
         )
         target_data = np.array(
-            [1 / 1.5, 1 + ((1 / 3.0) / 1), 0.25, 0.25, 0.25, 0.25, 1.0]
+            [1 / 1.5, 1 + ((1 / 3.0) / 1), 0.25, 0.25, 0.25, 0.25, 1.0],
         )[None]
         target_data = np.repeat(target_data, 4, 0)
         assert_array_equal(res, target_data)
@@ -105,7 +124,10 @@ class Test1D(unittest.TestCase):
         source_bounds = self.gen_bounds(0, 7, 1)
         target_bounds = self.gen_bounds(-1, 7, 1)
         res = bounded_vinterp.interpolate_conservative(
-            target_bounds, source_bounds, self.data, axis=1
+            target_bounds,
+            source_bounds,
+            self.data,
+            axis=1,
         )
         target_data = np.ones((4, 7))
         target_data[:, 0] = np.nan
@@ -124,7 +146,7 @@ class TestND(unittest.TestCase):
             [
                 np.arange(start, stop - step, step),
                 np.arange(start + step, stop, step),
-            ]
+            ],
         )
         bounds = bounds.transpose((1, 0))
         bounds = bounds[..., None, :].repeat(4, -2)
@@ -134,7 +156,10 @@ class TestND(unittest.TestCase):
     def test_target_half_resolution(self):
         target_bounds = self.gen_bounds(0, 7, 2)
         res = bounded_vinterp.interpolate_conservative(
-            target_bounds, self.bounds, self.data, axis=1
+            target_bounds,
+            self.bounds,
+            self.data,
+            axis=1,
         )
 
         target_data = np.ones((2, 3, 4, 3)) * 2
@@ -148,7 +173,10 @@ class TestND(unittest.TestCase):
         target_bounds = target_bounds.transpose((1, 0, 2, 3))
 
         res = bounded_vinterp.interpolate_conservative(
-            target_bounds, bounds, data, axis=2
+            target_bounds,
+            bounds,
+            data,
+            axis=2,
         )
         target_data = np.ones((2, 4, 3, 3)) * 2
         assert_array_equal(res, target_data)
@@ -156,7 +184,10 @@ class TestND(unittest.TestCase):
     def test_target_double_resolution(self):
         target_bounds = self.gen_bounds(0, 6.5, 0.5)
         res = bounded_vinterp.interpolate_conservative(
-            target_bounds, self.bounds, self.data, axis=1
+            target_bounds,
+            self.bounds,
+            self.data,
+            axis=1,
         )
         target_data = np.ones((2, 12, 4, 3)) * 0.5
         assert_array_equal(res, target_data)
@@ -169,7 +200,7 @@ class TestExceptions(unittest.TestCase):
         data = np.zeros((3, 4))
 
         msg = "Expecting source and target levels dimensionality"
-        with self.assertRaisesRegex(ValueError, msg):
+        with pytest.raises(ValueError, match=msg):
             bounded_vinterp.interpolate_conservative(target_bounds, source_bounds, data)
 
     def test_mismatch_source_target_level_shape(self):
@@ -184,9 +215,12 @@ class TestExceptions(unittest.TestCase):
             "the axis of interpolation to be identical.  "
             r"\('-', 4, 2\) != \(2, 5, 2\)"
         )
-        with self.assertRaisesRegex(ValueError, msg):
+        with pytest.raises(ValueError, match=msg):
             bounded_vinterp.interpolate_conservative(
-                target_bounds, source_bounds, data, axis=0
+                target_bounds,
+                source_bounds,
+                data,
+                axis=0,
             )
 
     def test_mismatch_between_source_levels_source_data(self):
@@ -199,9 +233,12 @@ class TestExceptions(unittest.TestCase):
             "The provided data is not of compatible shape with the "
             r"provided source bounds. \('-', 3, 4\) != \(2, 4\)"
         )
-        with self.assertRaisesRegex(ValueError, msg):
+        with pytest.raises(ValueError, match=msg):
             bounded_vinterp.interpolate_conservative(
-                target_bounds, source_bounds, data, axis=0
+                target_bounds,
+                source_bounds,
+                data,
+                axis=0,
             )
 
     def test_unexpected_bounds_shape(self):
@@ -212,9 +249,12 @@ class TestExceptions(unittest.TestCase):
         data = np.zeros((3, 4))
 
         msg = r"Unexpected source and target bounds shape. shape\[-1\] != 2"
-        with self.assertRaisesRegex(ValueError, msg):
+        with pytest.raises(ValueError, match=msg):
             bounded_vinterp.interpolate_conservative(
-                target_bounds, source_bounds, data, axis=0
+                target_bounds,
+                source_bounds,
+                data,
+                axis=0,
             )
 
     def test_not_conservative(self):
@@ -226,7 +266,7 @@ class TestExceptions(unittest.TestCase):
                 [
                     np.arange(start, stop - step, step),
                     np.arange(start + step, stop, step),
-                ]
+                ],
             )
             bounds = bounds.transpose((1, 0))
             return bounds.copy()
@@ -236,9 +276,12 @@ class TestExceptions(unittest.TestCase):
         data = np.ones((4, 6))
 
         msg = "Weights calculation yields a less than conservative result."
-        with self.assertRaisesRegex(ValueError, msg):
+        with pytest.raises(ValueError, match=msg):
             bounded_vinterp.interpolate_conservative(
-                target_bounds, source_bounds, data, axis=1
+                target_bounds,
+                source_bounds,
+                data,
+                axis=1,
             )
 
 
