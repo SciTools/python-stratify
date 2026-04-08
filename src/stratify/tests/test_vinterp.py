@@ -331,7 +331,7 @@ class Test_EXTRAPOLATE_LINEAR(unittest.TestCase):
 class Test_custom_extrap_kernel(unittest.TestCase):
     class my_kernel(vinterp.PyFuncExtrapolator):
         def __init__(self, *args, **kwargs):
-            super(Test_custom_extrap_kernel.my_kernel, self).__init__(*args, **kwargs)
+            super().__init__(*args, **kwargs)
 
         def extrap_kernel(self, direction, z_src, fz_src, level, output_array):
             output_array[:] = -10
