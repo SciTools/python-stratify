@@ -44,8 +44,8 @@ def interpolate_conservative(z_target, z_src, fz_src, axis=-1):
     : :class:`np.ndarray`
         fz_src interpolated from z_src to z_target.
 
-    Note
-    ----
+    Notes
+    -----
     - Support for 1D z_target and corresponding ND z_src will be provided in
     future as driven by user requirement.
     - Those cells, where 'nan' values in the source data contribute, a 'nan'
