@@ -48,7 +48,7 @@ jobs:
         fetch-depth: 0
 
     - name: "build ${{ matrix.os }} (${{ matrix.arch }}) wheels"
-      uses: pypa/cibuildwheel@v4.1.0
+      uses: pypa/cibuildwheel@v4.1.1
       env:
         CIBW_SKIP: "cp39-* cp310-* cp311-* pp* *-musllinux*"
         CIBW_ARCHS: ${{ matrix.arch }}
@@ -114,7 +114,7 @@ jobs:
         merge-multiple: true
         path: ${{ github.workspace }}/dist
 
-    - uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b
+    - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33
       with:
 
         repository_url: https://test.pypi.org/legacy/
@@ -137,6 +137,6 @@ jobs:
         merge-multiple: true
         path: ${{ github.workspace }}/dist
 
-    - uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b
+    - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33
       with:
         print_hash: true
