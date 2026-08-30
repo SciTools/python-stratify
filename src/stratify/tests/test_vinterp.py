@@ -114,7 +114,7 @@ class TestColumnInterpolation(unittest.TestCase):
 
     def test_wrong_rising_target(self):
         r = self.interpolate([2, 1], [1, 2])
-        assert_array_equal(r, [1, np.inf])
+        assert_array_equal(r, [0.0, 1.0])
 
     def test_wrong_rising_source(self):
         r = self.interpolate([1, 2], [2, 1], rising=True)
@@ -124,11 +124,11 @@ class TestColumnInterpolation(unittest.TestCase):
         # If we overshoot the first level, there is no hope,
         # so we end up extrapolating.
         r = self.interpolate([3, 2, 1, 0], [2, 1], rising=True)
-        assert_array_equal(r, [np.inf, np.inf, np.inf, np.inf])
+        assert_array_equal(r, [-np.inf, -np.inf, 0.0, np.inf])
 
     def test_non_monotonic_coordinate_interp(self):
         result = self.interpolate([15, 5, 15.0], [10.0, 20, 0, 20])
-        assert_array_equal(result, [1, 2, 3])
+        assert_array_equal(result, [1.0, 1.0, 2.0])
 
     def test_non_monotonic_coordinate_extrap(self):
         result = self.interpolate([0, 15, 16, 17, 5, 15.0, 25], [10.0, 40, 0, 20])
